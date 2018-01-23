@@ -37,8 +37,9 @@ class onestep{
 		// 获取需要读取的批次的页码
 		foreach (self::$pici as $v)
 		{
+			$temp = file_get_contents('http://www.cn357.com/notice_'.$v);
 			// 创建dom对象
-			$dom = HtmlDomParser::file_get_html('http://www.cn357.com/notice_'.$v);
+			$dom = HtmlDomParser::str_get_html($temp);
 			$res = $dom->find(".nextprev",0)->prev_sibling()->innertext;
 			$piciToPage[$v] = (int)$res;
 			// 清理内存防止内存泄漏

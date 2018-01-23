@@ -41,8 +41,9 @@ class twostep{
 			// 判定文件是否存在且为正常的文件
 			if (is_file($file))
 		    {
-		    	// 创建dom对象
-				$dom = HtmlDomParser::file_get_html($file);
+		    	$temp = file_get_contents($file);
+				// 创建dom对象
+				$dom = HtmlDomParser::str_get_html($temp);
 				// 获取所有的详情页下载链接
 				$articles = array();
 				foreach($dom->find('div.noticeLotItem') as $article) {

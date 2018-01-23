@@ -141,8 +141,9 @@ class fourstep{
 		    	// 判定是否已经存在且合法
 		    	if (is_file($file))
 		    	{
-			    	// 创建dom对象
-					$dom = HtmlDomParser::file_get_html($file);
+		    		$temp = file_get_contents($file);
+					// 创建dom对象
+					$dom = HtmlDomParser::str_get_html($temp);
 					// 获取所有的详情页下载链接
 					$temp = array();
 					// 获取相应节点数据
@@ -198,7 +199,7 @@ class fourstep{
 					// 转换字符编码
 					foreach ($temp as $k => $v)
 					{
-						$v = iconv("gb2312","UTF-8",$v);
+						$v = mb_convert_encoding($v, "UTF-8", "gb2312");
 						$temp[$k] = $v;
 					}
 					// 插入记录
