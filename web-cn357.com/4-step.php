@@ -5,19 +5,16 @@ require_once('../resources/autoload.php');
 // 初始化数据库配置
 require_once('./lib/config.php');
 // 加载自己项目资源库
-require_once('./lib/onestep.php');
+require_once('./lib/fourstep.php');
 // 路径处理类
 require_once('./lib/LibDir.php');
 // 文件处理类
 require_once('./lib/LibFile.php');
+// 中文转拼音
+require_once('./lib/pinyin.php');
 
-// 需要读取的批次
-$pici = [
-	301,300
-];
+// 初始化数据表
+fourstep::initable();
 
-// 需要读取的批次
-onestep::$pici = $pici;
-
-// 初始化要下载的列表页
-onestep::initlist();
+// 解析所有文件
+fourstep::analyse();
