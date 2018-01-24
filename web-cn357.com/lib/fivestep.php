@@ -19,6 +19,20 @@ class fivestep{
 
 	public static function initable()
 	{
+		// 数据库迁移类对象
+		$Schema = Capsule::connection('final_database')->getSchemaBuilder();
+		
+		if(!$Schema->hasTable('brand'))
+		{
+			// 如果不存在品牌表就创建这个数据表
+			$Schema->create('brand', function (Blueprint $table) {
+			    $table->increments('ul_id');
+			    $table->string('ul_url');
+			    $table->string('ul_status');
+			    $table->string('ul_filename');
+			    $table->string('ul_filepath');
+			});
+		}
 		echo "init table successful!\r\n";
 	}
 
