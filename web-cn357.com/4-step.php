@@ -16,5 +16,9 @@ require_once('./lib/pinyin.php');
 // 初始化数据表
 fourstep::initable();
 
-// 解析所有文件
+// 解析所有文件并储存原始数据raw_data
 fourstep::analyse();
+
+// 清洗原生数据raw_data到并保存指定数据库表之中
+// 并且表必须已经存在
+fourstep::cleandata();

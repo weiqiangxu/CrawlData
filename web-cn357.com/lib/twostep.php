@@ -8,10 +8,15 @@ use Huluo\Extend\Gather;
 
 use Illuminate\Database\Schema\Blueprint;
 
-// 初始化待下载的页面地址表
+
+/**
+  * 解析所有列表页获取需要下载的详情页
+  * @author xu
+  * @copyright 2018/01/24
+  */
 class twostep{
 
-	// 初始化列表页
+	// 初始化表并解析入库
 	public static function initdetail()
 	{
 		$LibFile = new LibFile();
@@ -43,32 +48,39 @@ class twostep{
 		    {
 		    	$temp = file_get_contents($file);
 				// 创建dom对象
-				$dom = HtmlDomParser::str_get_html($temp);
-				// 获取所有的详情页下载链接
-				$articles = array();
-				foreach($dom->find('div.noticeLotItem') as $article) {
-				    $articles[] = $article->find('a',0)->href;
-				}
-				array_unique($articles);
-				// 入库获取到的当前页面的详情页信息
-				foreach ($articles as $v)
+				if($dom = HtmlDomParser::str_get_html($temp))
 				{
-					// 某一列表页url
-					$data = array(
-						// 保存路径批次+页码
-						'file_path'=>$aVal['ul_filename'],
-						// 页面地址
-						'company_url'=>'http://www.cn357.com'.$v,
-						'status'=>'wait'
-					);
-					// 插入记录
-					Capsule::table('url_detail')->insert($data);
+					// 获取所有的详情页下载链接
+					$articles = array();
+					foreach($dom->find('div.noticeLotItem') as $article) {
+					    $articles[] = $article->find('a',0)->href;
+					}
+					array_unique($articles);
+					// 入库获取到的当前页面的详情页信息
+					foreach ($articles as $v)
+					{
+						// 某一列表页url
+						$data = array(
+							// 保存路径批次+页码
+							'file_path'=>$aVal['ul_filename'],
+							// 页面地址
+							'company_url'=>'http://www.cn357.com'.$v,
+							'status'=>'wait'
+						);
+						// 插入记录
+						Capsule::table('url_detail')->insert($data);
+					}
+					// 清理内存防止内存泄漏
+					$dom-> clear();
+					// 记录成功
+				    $LibFile->WriteData($logFile, 4, $aVal['ul_filename'].'解析完成！');
+					echo $aVal['ul_filename']." analyse ok!\r\n";
 				}
-				// 清理内存防止内存泄漏
-				$dom-> clear();
-				// 记录成功
-			    $LibFile->WriteData($logFile, 4, $aVal['ul_filename'].'解析完成！');
-				echo $aVal['ul_filename']." analyse ok!\r\n";
+				else
+				{
+					$LibFile->WriteData($logFile, 4, $aVal['ul_filename'].'解析失败！');
+					echo $aVal['ul_filename']." analyse error!\r\n";
+				}
 		    }
 		}
 	}	

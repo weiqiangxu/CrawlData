@@ -8,7 +8,11 @@ use Huluo\Extend\Gather;
 
 use Illuminate\Database\Schema\Blueprint;
 
-// 初始化待下载的页面地址表
+/**
+  * 检测需要下载的批次并下载相应批次的列表页
+  * @author xu
+  * @copyright 2018/01/24
+  */
 class onestep{
 
 	// 批次最大页码
@@ -126,13 +130,14 @@ class onestep{
 		        {
 		            file_put_contents($sFile,$aResult['results']);
 		            // 记录成功
-			        $LibFile->WriteData($logFile, 4, '详情页 '.$aVal['ul_filename'].'下载完成！');
+			        $LibFile->WriteData($logFile, 4, '列表页 '.$aVal['ul_filename'].'下载完成！');
 		        }
 		    }
             echo "==ok\r\n";
 		}
 	}
 
+	// 校验是否需要更新
 	public static function judgeupdate()
 	{
 		// 获取当前http://www.cn357.com/notice_list的所有批次号码
@@ -148,8 +153,38 @@ class onestep{
 		// 判定是否数据表存在
 		if (Capsule::schema()->hasTable('url_list'))
 		{
-			// 获取所有批次号
-
+			// 获取最大批次
+			$data = Capsule::table('url_list')
+                ->orderBy('ul_id', 'desc')
+                ->first();
+            // 校验是否为空表
+            if($data)
+            {
+            	$max = $data->ul_filepath;
+            }
+            else
+            {
+            	$max = 1;
+            }
+            $temp = array();
+            // 获取需要读取的批次
+            for ($i=$max+1; $i<=$maxPici;$i++)
+		    { 
+		    	$temp[] = $i;
+		    	echo "need to download pici :".$i."\r\n";
+		    }
+		    if(!empty($temp))
+		    {
+				// 需要读取的批次 
+				self::$pici = $temp;
+				// 初始化要下载的列表页
+				self::initlist();
+		    }
+		    else
+		    {
+		    	echo 'noting update!';
+		    	$LibFile->WriteData($logFile, 4, '没有需要更新的数据！');
+		    }
 		}
 		else
 		{

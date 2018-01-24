@@ -8,14 +8,19 @@ use Huluo\Extend\Gather;
 
 use Illuminate\Database\Schema\Blueprint;
 
-// 初始化待下载的页面地址表
+
+/**
+  * 下载所有需要解析的详情页
+  * @author xu
+  * @copyright 2018/01/24
+  */
 class threestep{
 
 	// 初始化列表页
 	public static function download()
 	{
 		// chunk分块处理每100条数据
-		Capsule::table('url_detail')->where('status','wait')->orderBy('id')->chunk(1000,function($datas){
+		Capsule::table('url_detail')->where('status','wait')->orderBy('id')->chunk(100,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECTPATH.'down/threestep.txt';

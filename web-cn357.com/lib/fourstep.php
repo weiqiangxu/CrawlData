@@ -8,7 +8,11 @@ use Huluo\Extend\Gather;
 
 use Illuminate\Database\Schema\Blueprint;
 
-// 初始化待下载的页面地址表
+/**
+  * 解析所有详情页入库原生数据并清洗数据
+  * @author xu
+  * @copyright 2018/01/24
+  */
 class fourstep{
 
 	// 初始化存储原始数据表
@@ -124,7 +128,7 @@ class fourstep{
 	}
 
 
-	// 初始化列表页
+	// 存储原生数据
 	public static function analyse()
 	{
 		// chunk分块处理每100条数据
@@ -212,5 +216,12 @@ class fourstep{
 			    }
 		    }
 		});
-	}	
+	}
+
+	// 数据清洗
+	public static function cleandata()
+	{
+		echo '数据清洗成功!';
+	}
+
 }
