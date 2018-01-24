@@ -22,7 +22,7 @@ class onestep{
 	{
 		$LibFile = new LibFile();
 		// 记录第1步骤日志
-		$logFile = PROJECTPATH.'/down/onestep.txt';
+		$logFile = PROJECT_APP_DOWN.'onestep.txt';
 		// 检测数据库是否存在如果不存在就删除
 		Capsule::schema()->dropIfExists('url_list');
 		echo "url_list delete\r\n";
@@ -98,7 +98,7 @@ class onestep{
 		$LibFile->WriteData($logFile, 4, 'url_list 数据表更新完成！');
 		echo 'url_list table update completed!'."\r\n";
 		// 存储路径
-		$sPath = PROJECTPATH.'down/url_list';
+		$sPath = PROJECT_APP_DOWN.'url_list';
 		// 创建文件夹
 		@mkdir($sPath, 0777, true);
 		// 读取需要下载的列表页
@@ -182,8 +182,7 @@ class onestep{
 		    }
 		    else
 		    {
-		    	echo 'noting update!';
-		    	$LibFile->WriteData($logFile, 4, '没有需要更新的数据！');
+		    	echo 'noting need to update!';
 		    }
 		}
 		else

@@ -20,12 +20,12 @@ foreach ($Query as $Table)
 }
 
 // 用于存储的数据库
-$database = array_merge($database, ['database' => 'wwwcn357com_database']);
+$database = array_merge($database, ['database' => 'temp_cn357_'.date("Ymd",time())]);
 
-if (!in_array('wwwcn357com_database',$Schema))
+if (!in_array('temp_cn357_'.date("Ymd",time()),$Schema))
 {
 	// 如果数据库不存在则创建数据库
-    $SQL = sprintf('create database `%s` character set utf8 collate utf8_unicode_ci', 'wwwcn357com_database');
+    $SQL = sprintf('create database `%s` character set utf8 collate utf8_unicode_ci', 'temp_cn357_'.date("Ymd",time()));
     Capsule::connection('getdatabases')->statement($SQL);
 }
 
@@ -36,8 +36,8 @@ $capsule->setAsGlobal();
 // 启动Eloquent
 $capsule->bootEloquent();
 
-// 定义当前项目路径
-define('PROJECTPATH',str_replace ( '\\', '/',dirname(dirname(__FILE__)).'/'));
+// 定义下载文件存储路径
+define('PROJECT_APP_DOWN',APP_DOWN.'/wwwcn357com/');
 
 // 客户端关闭脚本终止
 ignore_user_abort(true);

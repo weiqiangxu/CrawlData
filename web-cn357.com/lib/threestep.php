@@ -23,12 +23,12 @@ class threestep{
 		Capsule::table('url_detail')->where('status','wait')->orderBy('id')->chunk(100,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
-			$logFile = PROJECTPATH.'down/threestep.txt';
+			$logFile = PROJECT_APP_DOWN.'threestep.txt';
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
 		    	// 保存文件名
-		    	$path = PROJECTPATH.'down/url_detail/'.$data->file_path;
+		    	$path = PROJECT_APP_DOWN.'url_detail/'.$data->file_path;
 		    	if(!file_exists($path) || !is_dir($path))
 		    	{
 		       		// 如果文件夹不存在则创建文件夹

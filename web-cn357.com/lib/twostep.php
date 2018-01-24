@@ -21,7 +21,7 @@ class twostep{
 	{
 		$LibFile = new LibFile();
 		// 记录第2步骤日志
-		$logFile = PROJECTPATH.'down/twostep.txt';
+		$logFile = PROJECT_APP_DOWN.'twostep.txt';
 		// 创建存储表
 		Capsule::schema()->dropIfExists('url_detail');
 		echo "url_detail delete\r\n";
@@ -42,7 +42,7 @@ class twostep{
 		foreach ($aTable as $sKey => $aVal)
 		{
 			// 需要读取的文件
-			$file = PROJECTPATH.'down/url_list/'.$aVal['ul_filename'].'.html';
+			$file = PROJECT_APP_DOWN.'url_list/'.$aVal['ul_filename'].'.html';
 			// 判定文件是否存在且为正常的文件
 			if (is_file($file))
 		    {
