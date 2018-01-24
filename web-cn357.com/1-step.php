@@ -11,13 +11,5 @@ require_once('./lib/LibDir.php');
 // 文件处理类
 require_once('./lib/LibFile.php');
 
-// 需要读取的批次
-$pici = [
-	301,300
-];
-
-// 需要读取的批次
-onestep::$pici = $pici;
-
-// 初始化要下载的列表页
-onestep::initlist();
+// 依据批次号进行判定是否更新数据
+onestep::judgeupdate();

@@ -37,18 +37,47 @@ class onestep{
 		// 获取需要读取的批次的页码
 		foreach (self::$pici as $v)
 		{
-			$temp = file_get_contents('http://www.cn357.com/notice_'.$v);
+			// 防止foreach跑的太快未获取到内容直接报prev_sibling none object
+			$ch = curl_init();
+			// 2. 设置选项，包括URL
+			curl_setopt($ch,CURLOPT_URL,'http://www.cn357.com/notice_'.$v);
+			// 设置获取到内容不直接输出到页面上
+			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			// 设置等待时间无限长，强制必须获取到内容
+			curl_setopt($ch,CURLOPT_CONNECTTIMEOUT_MS,0);
+			// CURLLOPT_HEADER设置为0表示不返回HTTP头部信息
+			curl_setopt($ch,CURLOPT_HEADER,0);
+			// 3. 执行并获取HTML文档内容
+			$temp = curl_exec($ch);
+			// 4. 释放curl句柄
+			curl_close($ch);
 			// 创建dom对象
-			$dom = HtmlDomParser::str_get_html($temp);
-			$res = $dom->find(".nextprev",0)->prev_sibling()->innertext;
-			$piciToPage[$v] = (int)$res;
-			// 清理内存防止内存泄漏
-			$dom-> clear(); 
+			if($dom = HtmlDomParser::str_get_html($temp))
+			{
+				if($dom->find(".nextprev",0))
+				{
+					$res = $dom->find(".nextprev",0)->prev_sibling()->innertext;
+					$piciToPage[$v] = (int)$res;
+				}
+				else
+				{
+					$piciToPage[$v] = 1;
+				}
+				$LibFile->WriteData($logFile, 4, '列表页 http://www.cn357.com/notice_'.$v.'分析获取最大页码完毕！');
+				echo 'http://www.cn357.com/notice_'.$v.' analyse completed!'."\r\n";
+				// 清理内存防止内存泄漏
+				$dom-> clear(); 
+			}
+			else
+			{
+				$LibFile->WriteData($logFile, 4, '列表页 http://www.cn357.com/notice_'.$v.'分析获取最大页码失败！');
+				echo 'http://www.cn357.com/notice_'.$v.' net error '."\r\n";
+			}
 		}
 		// 获取需要下载的所有页码
 		foreach ($piciToPage as $pici => $max)
 		{
-			for ($i=1; $i < $max; $i++)
+			for ($i=1; $i <= $max; $i++)
 			{ 
 				// 某一列表页url
 				$data = array(
@@ -61,6 +90,9 @@ class onestep{
 				Capsule::table('url_list')->insert($data);
 			}
 		}
+		echo "update url_list successful\r\n";
+		$LibFile->WriteData($logFile, 4, 'url_list 数据表更新完成！');
+		echo 'url_list table update completed!'."\r\n";
 		// 存储路径
 		$sPath = PROJECTPATH.'down/url_list';
 		// 创建文件夹
@@ -83,7 +115,6 @@ class onestep{
 		    {
 		        // 调用下载器
 		        $oGather = new Gather();
-
 		        // 页面http地址
 		        $aOption = [
 		            CURLOPT_URL => $aVal['ul_url'],
@@ -95,10 +126,45 @@ class onestep{
 		        {
 		            file_put_contents($sFile,$aResult['results']);
 		            // 记录成功
-			        $LibFile->WriteData($logFile, 4, $aVal['ul_filename'].'下载完成！');
+			        $LibFile->WriteData($logFile, 4, '详情页 '.$aVal['ul_filename'].'下载完成！');
 		        }
 		    }
             echo "==ok\r\n";
 		}
-	}	
+	}
+
+	public static function judgeupdate()
+	{
+		// 获取当前http://www.cn357.com/notice_list的所有批次号码
+		$temp = file_get_contents("http://www.cn357.com/notice_list");
+		// 创建dom对象
+		$dom = HtmlDomParser::str_get_html($temp);
+		// 获取最大批次 /notice_301
+		$maxpici  = $dom->find("#noticeList",0)->first_child()->href;
+		// 正匹配获取数据
+		preg_match('/notice_(\d+)/', $maxpici, $matche);
+		// 最大批次号码为
+		$maxPici = $matche[1];
+		// 判定是否数据表存在
+		if (Capsule::schema()->hasTable('url_list'))
+		{
+			// 获取所有批次号
+
+		}
+		else
+		{
+			// 获取所有批次号
+			$temp = array();
+		    for ($i=2; $i<=$maxPici;$i++)
+		    { 
+		    	$temp[] = $i;
+		    	echo "need to download pici :".$i."\r\n";
+		    }
+			// 需要读取的批次 
+			self::$pici = $temp;
+			// 初始化要下载的列表页
+			self::initlist();
+		}
+	}
+
 }
