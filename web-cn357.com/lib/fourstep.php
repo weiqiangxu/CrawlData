@@ -66,7 +66,7 @@ class fourstep{
 			// 后轮距
 			$table->string('houlunju')->nullable()->comment('后轮距');
 			// 识别代号
-			$table->string('shibiedaihao')->nullable()->comment('识别代号');
+			$table->text('shibiedaihao')->nullable()->comment('识别代号');
 			// 整车长
 			$table->string('zhengchechang')->nullable()->comment('整车长');
 			// 整车宽
@@ -112,15 +112,15 @@ class fourstep{
 			// 底盘4
 			$table->string('dipan4')->nullable()->comment('底盘4');
 			// 发送机型号
-			$table->string('fadongjixinghao')->nullable()->comment('发送机型号');
+			$table->text('fadongjixinghao')->nullable()->comment('发送机型号');
 			// 发动机生产企业
-			$table->string('fadongjishengchanqiye')->nullable()->comment('发动机生产企业');
+			$table->text('fadongjishengchanqiye')->nullable()->comment('发动机生产企业');
 			// 发动机商标
 			$table->string('fadongjishangbiao')->nullable()->comment('发动机商标');
 			// 排量
-			$table->string('pailiang')->nullable()->comment('排量');
+			$table->text('pailiang')->nullable()->comment('排量');
 			// 功率
-			$table->string('gonglv')->nullable()->comment('功率');
+			$table->text('gonglv')->nullable()->comment('功率');
 			// 备注
 			$table->text('beizhu')->nullable()->comment('备注');
 		});
@@ -132,7 +132,7 @@ class fourstep{
 	public static function analyse()
 	{
 		// chunk分块处理每100条数据
-		Capsule::table('url_detail')->orderBy('id')->chunk(1000,function($datas){
+		Capsule::table('url_detail')->where('status', 'completed')->orderBy('id')->chunk(100,function($datas){
 			// 日志操作类
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
@@ -147,72 +147,80 @@ class fourstep{
 		    	{
 		    		$temp = file_get_contents($file);
 					// 创建dom对象
-					$dom = HtmlDomParser::str_get_html($temp);
-					// 获取所有的详情页下载链接
-					$temp = array();
-					// 获取相应节点数据
-					$temp = array();
-					// 获取数据表格之中所有tr的dom节点
-					foreach($dom->find('.noticeAttr tr') as $article) {
-						if(!$article->find('table',0))
-						{
-							// 将中文转拼音作为入库字段
-							if($article->find('.t',0))
-							{
-								$k = pinyin::to(trim($article->find('.t',0)->plaintext));
-								$v = $article->find('.t',0)->next_sibling()->plaintext;
-								$temp[$k] = $v;
-							}
-							// 有时候tr只有一个.t的td,排除non-object的exception
-							if($article->find('.t',1))
-							{
-								$k = pinyin::to(trim($article->find('.t',1)->plaintext));
-								$v = $article->find('.t',1)->next_sibling()->plaintext;
-								$temp[$k] = $v;
-							}
-						}
-						else
-						{
-							// 处理发动机一行
-							// 发动机型号
-							$k = pinyin::to(trim($article->find('.f1',0)->plaintext)); 
-							$v = $article->find('.f',0)->next_sibling()->children(0)->innertext;
-							$temp[$k] = $v;
-							// 发动机生产企业
-							$k = pinyin::to(trim($article->find('.f2',0)->plaintext));
-							$v = $article->find('.f',0)->next_sibling()->children(1)->innertext;
-							$temp[$k] = $v;
-							// 发动机商标
-							$k = pinyin::to(trim($article->find('.f3',0)->plaintext));
-							$v = $article->find('.f',0)->next_sibling()->children(2)->innertext;
-							$temp[$k] = $v;
-							// 排量
-							$k = pinyin::to(trim($article->find('.f3',0)->next_sibling()->plaintext));
-							$v = $article->find('.f',0)->next_sibling()->children(3)->innertext;
-							$temp[$k] = $v;
-							// 功率
-							$k = pinyin::to(trim($article->find('.f',0)->last_child()->plaintext));
-							$v = $article->find('.f',0)->next_sibling()->children(4)->innertext;
-							$temp[$k] = $v;
-						}
-					}
-					// 加入批次路径
-					$temp['picilujing'] = $data->file_path;
-					// 加入当前页面url以供随机查询校验
-					$temp['yemiandizhi'] = $data->company_url;
-					// 转换字符编码
-					foreach ($temp as $k => $v)
+					if($dom = HtmlDomParser::str_get_html($temp))
 					{
-						$v = mb_convert_encoding($v, "UTF-8", "gb2312");
-						$temp[$k] = $v;
+						// 获取所有的详情页下载链接
+						$temp = array();
+						// 获取相应节点数据
+						$temp = array();
+						// 获取数据表格之中所有tr的dom节点
+						foreach($dom->find('.noticeAttr tr') as $article) {
+							if(!$article->find('table',0))
+							{
+								// 将中文转拼音作为入库字段
+								if($article->find('.t',0))
+								{
+									$k = pinyin::to(trim($article->find('.t',0)->plaintext));
+									$v = $article->find('.t',0)->next_sibling()->plaintext;
+									$temp[$k] = $v;
+								}
+								// 有时候tr只有一个.t的td,排除non-object的exception
+								if($article->find('.t',1))
+								{
+									$k = pinyin::to(trim($article->find('.t',1)->plaintext));
+									$v = $article->find('.t',1)->next_sibling()->plaintext;
+									$temp[$k] = $v;
+								}
+							}
+							else
+							{
+								// 处理发动机一行
+								// 发动机型号
+								$k = pinyin::to(trim($article->find('.f1',0)->plaintext)); 
+								$v = $article->find('.f',0)->next_sibling()->children(0)->innertext;
+								$temp[$k] = $v;
+								// 发动机生产企业
+								$k = pinyin::to(trim($article->find('.f2',0)->plaintext));
+								$v = $article->find('.f',0)->next_sibling()->children(1)->innertext;
+								$temp[$k] = $v;
+								// 发动机商标
+								$k = pinyin::to(trim($article->find('.f3',0)->plaintext));
+								$v = $article->find('.f',0)->next_sibling()->children(2)->innertext;
+								$temp[$k] = $v;
+								// 排量
+								$k = pinyin::to(trim($article->find('.f3',0)->next_sibling()->plaintext));
+								$v = $article->find('.f',0)->next_sibling()->children(3)->innertext;
+								$temp[$k] = $v;
+								// 功率
+								$k = pinyin::to(trim($article->find('.f',0)->last_child()->plaintext));
+								$v = $article->find('.f',0)->next_sibling()->children(4)->innertext;
+								$temp[$k] = $v;
+							}
+						}
+						// 加入批次路径
+						$temp['picilujing'] = $data->file_path;
+						// 加入当前页面url以供随机查询校验
+						$temp['yemiandizhi'] = $data->company_url;
+						// 转换字符编码
+						foreach ($temp as $k => $v)
+						{
+							$v = mb_convert_encoding($v, "UTF-8", "gb2312");
+							$temp[$k] = $v;
+						}
+						// 插入记录
+						Capsule::table('raw_data')->insert($temp);
+						// 清理内存防止内存泄漏
+						$dom->clear();
+						// 记录成功
+					    $LibFile->WriteData($logFile, 4, $data->file_path.'/'.$data->id.'.html'.'解析完成！');
+						echo $data->file_path.'/'.$data->id.'.html'." analyse ok!\r\n";
 					}
-					// 插入记录
-					Capsule::table('raw_data')->insert($temp);
-					// 清理内存防止内存泄漏
-					$dom->clear();
-					// 记录成功
-				    $LibFile->WriteData($logFile, 4, $data->file_path.'/'.$data->id.'.html'.'解析完成！');
-					echo $data->file_path.'/'.$data->id.'.html'." analyse ok!\r\n";
+					else
+					{
+						// 记录错误
+					    $LibFile->WriteData($logFile, 4, $data->file_path.'/'.$data->id.'.html'.'文件不存在！');
+						echo $data->file_path.'/'.$data->id.'.html'." file no exit!\r\n";
+					}
 			    }
 		    }
 		});
@@ -221,7 +229,19 @@ class fourstep{
 	// 数据清洗
 	public static function cleandata()
 	{
-		echo '数据清洗成功!';
+		// chunk分块处理每100条数据进行清洗
+		Capsule::table('raw_data')->orderBy('id')->chunk(1000,function($datas){
+			// 日志操作类
+			$LibFile = new LibFile();
+			// 记录第三步骤日志
+			$logFile = PROJECTPATH.'down/fourstep.txt';
+			// 循环块级结果
+		    foreach ($datas as $data)
+		    {
+		    	// $LibFile->WriteData($logFile, 4, $data->file_path.'/'.$data->id.'.html'.'解析完成！');
+		    	var_dump($data);die;
+		    }
+		});
 	}
 
 }
