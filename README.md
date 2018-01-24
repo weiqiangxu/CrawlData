@@ -4,16 +4,16 @@
 
 1.  配置resource/autoload.php的数据库information_schema信息。
 
-    $database = [
-    	'driver' => 'mysql',
-    	'host' => 'localhost',
-    	'database' => 'information_schema',
-    	'username' => 'root',
-    	'password' => '123456',
-    	'charset' => 'utf8',
-    	'collation' => 'utf8_unicode_ci',
-    	'prefix' => ''
-    ];
+>$database = [
+>	'driver' => 'mysql',
+>	'host' => 'localhost',
+>	'database' => 'information_schema',
+>	'username' => 'root',
+>	'password' => '123456',
+>	'charset' => 'utf8',
+>	'collation' => 'utf8_unicode_ci',
+>	'prefix' => ''
+>];
 
 2.  依次执行1-step.php、2-step.php、3-step.php、4-step.php。
 
