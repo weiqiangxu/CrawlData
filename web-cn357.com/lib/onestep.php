@@ -110,7 +110,7 @@ class onestep{
 		// 循环下载项
 		foreach ($aTable as $sKey => $aVal)
 		{
-			echo $aVal['ul_filename'];
+			echo sprintf('%s/%s.html', $sPath, $aVal['ul_filename']);
 			// 存储文件名
 		    $sFile = sprintf('%s/%s.html', $sPath, $aVal['ul_filename']);
 		    
@@ -133,7 +133,7 @@ class onestep{
 			        $LibFile->WriteData($logFile, 4, '列表页 '.$aVal['ul_filename'].'下载完成！');
 		        }
 		    }
-            echo "==ok\r\n";
+            echo " download==ok\r\n";
 		}
 	}
 
