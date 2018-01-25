@@ -161,6 +161,10 @@ class fourstep{
 						echo $data->file_path.'/'.$data->id.'.html'." file no exit!\r\n";
 					}
 			    }
+			    // 更改SQL语句
+				Capsule::table('url_detail')
+					->where('id', $data->id)
+					->update(['status' =>'read']);
 		    }
 		});
 	}
