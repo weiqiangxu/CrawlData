@@ -38,17 +38,17 @@ $capsule->bootEloquent();
 
 
 // 检测是否整理后的数据库存储库
-$final_database = array_merge($database, ['database' => 'final_database']);
+$final_database = array_merge($database, ['database' => 'model_jdcswww']);
 
-if (!in_array('final_database',$Schema))
+if (!in_array('model_jdcswww',$Schema))
 {
 	// 如果数据库不存在则创建数据库
-    $SQL = sprintf('create database `final_database` character set utf8 collate utf8_unicode_ci');
+    $SQL = sprintf('create database `model_jdcswww` character set utf8 collate utf8_unicode_ci');
     Capsule::connection('getdatabases')->statement($SQL);
 }
 
 // 创建最终数据库连接
-$capsule->addConnection($final_database,'final_database');
+$capsule->addConnection($final_database,'model_jdcswww');
 // 设置全局静态可访问
 $capsule->setAsGlobal();
 // 启动Eloquent
