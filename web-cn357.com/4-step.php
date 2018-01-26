@@ -122,11 +122,11 @@ if(!Capsule::schema()->hasTable('raw_data'))
 		$table->text('gl')->nullable()->comment('功率');
 		// 备注
 		$table->text('bz')->nullable()->comment('备注');
+		// 是否已经被解析
+		$table->string('status')->default('wait')->comment('是否已经被解析');
 	});
 	echo "raw_data create\r\n";
 }
-
-
 
 // 开1000个进程解析数据
 

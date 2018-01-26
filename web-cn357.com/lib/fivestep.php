@@ -234,7 +234,7 @@ class fivestep{
 	public static function cleandata()
 	{	
 		// chunk分块处理每100条数据进行清洗
-		Capsule::table('raw_data')->orderBy('id')->chunk(1000,function($datas){
+		Capsule::table('raw_data')->where('status','wait')->orderBy('id')->chunk(1000,function($datas){
 			$pinyin = new Pinyin();
 			// 最终入库的数据库连接对象
 			$finalDatabase = Capsule::connection('model_jdcswww');
@@ -765,6 +765,8 @@ class fivestep{
 						}
 				    }
 	            }
+	            // 更改原始数据是否status
+	            Capsule::table('raw_data')->where('id',$data->id)->update(['status' =>'readed']);
 	            echo $data->id." analyse completed! \r\n";
 	            $LibFile->WriteData($logFile, 4, $data->id.'数据整理完毕！');
 		    }
