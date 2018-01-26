@@ -316,6 +316,11 @@ class fivestep{
 	            	{
 	            		$pici_shijian = $res->dpt_time;
 	            	}
+	            	else
+	            	{
+	            		// 该日期表示批次发布时间未找到
+	            		$pici_shijian = $data->ggpc;
+	            	}
 	            	// 记录外观
 	            	if(!empty($data->zcz) && !empty($data->zck) && !empty($data->zcg))
 	            	{
@@ -375,9 +380,10 @@ class fivestep{
 			    	// 轴距
 			    	if(!empty($data->zj))
 			    	{
+			    		$rez = $finalDatabase->table('data_label')->where('lbl_en','zj')->first();
 			    		$temp = [
 			    			'dwl_jml_id' => $jml_id,
-			    			'dwl_lab_id' => 0,
+			    			'dwl_lab_id' =>$rez->lbl_id,
 			    			'dwl_wheel' => $data->zj
 			    		];
 			    		$finalDatabase->table('data_wheel')->insert($temp);
@@ -441,7 +447,7 @@ class fivestep{
 			    		{
 			    			// 过滤id还有发动机参数
 			    			$temp = [
-				    			'ino_jml_id' => $jme_id,
+				    			'ino_jml_id' => $jml_id,
 				    			'ino_label' => $res->lbl_id,
 				    			'ino_text' => $res->lbl_label,
 				    			'ino_value' => $v
@@ -449,20 +455,23 @@ class fivestep{
 				    		$finalDatabase->table('data_info')->insert($temp);
 			    		}
 			    	}
-					/***************这里需要特别处理,暂时直接当做一个vin***************/
-			    	// 汽车识别代号
+			    	// 汽车识别代号直接当成一个完整的vin
 			    	if(!empty($data->sbdh))
 			    	{
-			    		$temp = [
-			    			'vin_3bit' => substr($data->sbdh,0,3),
-			    			'vin_8bit' => substr($data->sbdh,0,8)
-			    		];
-			    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
-			    		$temp = [
-			    			'dmv_jml_id' => $jml_id,
-			    			'dmv_vin_id' => $vin_id
-			    		];
-			    		$finalDatabase->table('data_model_vins')->insert($temp);
+			    		$sbdhArr = explode(',', $data->sbdh);
+			    		foreach ($sbdhArr as $v)
+			    		{
+				    		$temp = [
+				    			'vin_3bit' => substr($v,0,3),
+				    			'vin_8bit' => substr($v,0,8)
+				    		];
+				    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
+				    		$temp = [
+				    			'dmv_jml_id' => $jml_id,
+				    			'dmv_vin_id' => $vin_id
+				    		];
+				    		$finalDatabase->table('data_model_vins')->insert($temp);
+			    		}
 			    	}		    	
 	            }
 	            else
@@ -473,7 +482,6 @@ class fivestep{
 						    ['jml_make', '=', $datapp],
 		                    ['jml_model', '=', $data->ggxh]
 						])->first();
-
 
 					// 品牌车型ID
 				    $old_jml_id = $res->jml_id;
@@ -496,6 +504,11 @@ class fivestep{
 		            	if(!empty($res))
 		            	{
 		            		$pici_shijian = $res->dpt_time;
+		            	}
+		            	else
+		            	{
+		            		// 该时间用批次表示，说明该批次发布时间未找到
+		            		$pici_shijian = $data->ggpc;
 		            	}
 		            	// 记录最新批次外观
 		            	if(!empty($data->zcz) && !empty($data->zck) && !empty($data->zcg))
@@ -583,6 +596,7 @@ class fivestep{
 				    	if(!empty($data->zj))
 				    	{
 				    		$res = $finalDatabase->table('data_wheel')->where('dwl_jml_id', $old_jml_id)->first();
+				    		$rez = $finalDatabase->table('data_label')->where('lbl_en','zj')->first();
 				    		if(!empty($res))
 				    		{
 					    		$temp = [
@@ -596,7 +610,7 @@ class fivestep{
 				    		{
 				    			$temp = [
 					    			'dwl_jml_id' => $old_jml_id,
-					    			'dwl_lab_id' => 0,
+					    			'dwl_lab_id' => $rez['lbl_id'],
 					    			'dwl_wheel' => $data->zj
 					    		];
 					    		$finalDatabase->table('data_wheel')->insert($temp);
@@ -615,7 +629,6 @@ class fivestep{
 					    			'ino_value' => $v
 					    		];
 					    		$finalDatabase->table('data_info')
-					    		// 这里错了
 						            ->where([
 									    ['ino_jml_id', '=', $old_jml_id],
 					                    ['ino_label', '=',$res->lbl_id]
@@ -623,101 +636,86 @@ class fivestep{
 						            ->update($temp);
 				    		}
 				    	}
-				    	// 汽车识别代号有新批次的情况下一律新增vin码并更新vin与品牌车型ID绑定
+				    	// 以最新批次vin为准，更新所有vin
+				    	$res = $finalDatabase->table('data_model_vins')
+				    			->where('dmv_jml_id',$old_jml_id)
+				    			->get()->toArray();
+				    	$ids = array();
+				    	foreach ($res as $k => $v)
+				    	{
+				    		$ids[] = $v['dmv_vin_id'];
+				    	}
+				    	$finalDatabase->table('data_vins')->where('vin_id', 'in', $ids)->delete();
+				    	$res = $finalDatabase->table('data_model_vins')
+				    			->where('dmv_jml_id',$old_jml_id)
+				    			->delete();
+				    	// 汽车识别代号直接当成一个完整的vin
 				    	if(!empty($data->sbdh))
 				    	{
-				    		
-				    		$temp = [
-				    			'vin_3bit' => substr($data->sbdh,0,3),
-				    			'vin_8bit' => substr($data->sbdh,0,8)
-				    		];
-				    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
-				    		$res = $finalDatabase->table('data_label')->where('lbl_en',$k)->first();
-				    		if(!empty($res))
+				    		$sbdhArr = explode(',', $data->sbdh);
+				    		foreach ($sbdhArr as $v)
 				    		{
 					    		$temp = [
-					    			'dmv_vin_id' => $vin_id
+					    			'vin_3bit' => substr($v,0,3),
+					    			'vin_8bit' => substr($v,0,8)
 					    		];
-					    		$finalDatabase->table('data_model_vins')
-						            ->where([
-									    ['ino_jml_id', '=', $old_jml_id]
-									])
-						            ->update($temp);
-				    		}
-				    		else
-				    		{
-				    			$temp = [
-					    			'dmv_jml_id' => $old_jml_id,
+					    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
+					    		$temp = [
+					    			'dmv_jml_id' => $jml_id,
 					    			'dmv_vin_id' => $vin_id
 					    		];
 					    		$finalDatabase->table('data_model_vins')->insert($temp);
 				    		}
 				    	}
-
+				    	// 删除所有原有发动机数据全部更新为最新批次的发动机数据
+				    	$finalDatabase->table('data_engine')->where('engine_jml_id','=',$old_jml_id)->delete();
 				    	// 当发动机型号有数据库之中不存在的型号时候就需要更新发动机型号
 				    	if(!empty($data->fdjxh)&&!empty($data->fdjscqy)&&!empty($data->pl)&&!empty($data->gl))
 				    	{
 				    		$fdjxh = explode('<br>', $data->fdjxh);
-				    		// 获取数据库之中存在的所有发动机型号
-				    		$res = $finalDatabase->table('data_engine')
-				    			->where('engine_jml_id',$old_jml_id)
-				    			->get()->toArray();
-				    		
-				    		$allFdjxhSql = array();
-				    		// 获取新加入的发动机型号
-				    		foreach ($res as $k => $v)
+				    		$fdjscqy = explode('<br>',$data->fdjscqy);
+				    		// 处理发动机商标
+				    		if(!empty($data->fdjsb))
 				    		{
-				    			$allFdjxhSql[] = $v['engine_no'];
+				    			$fdjsb = explode('<br>',$data->fdjsb);
 				    		}
-				    		// 获取两个数据的差集
-				    		$newfadjxh = array_diff($fdjxh,$allFdjxhSql);
-				    		// 如果新的发动机有而旧的没有的存在
-				    		if(!empty($newfadjxh))
+				    		else
 				    		{
-				    			$fdjxh = explode('<br>', $data->fdjxh);
-					    		$fdjscqy = explode('<br>',$data->fdjscqy);
-					    		if(!empty($data->fdjsb))
-					    		{
-					    			$fdjsb = explode('<br>',$data->fdjsb);
-					    		}
-					    		else
-					    		{
-					    			$fdjsb =[0=>''];
-					    		}
-
-					    		$pl = explode('<br>', $data->pl);
-					    		$gl = explode('<br>', $data->gl);
-
-					    		// 去除空值
-					    		$fdjxh = array_filter($fdjxh);
-
-					    		foreach ($fdjxh as $k => $v)
-					    		{
-					    			// 不存在于发动机型号的新型号进行入库
-					    			if(!in_array($v, $allFdjxhSql))
-					    			{
-						    			if(!empty($fdjscqy[$k]))
-						    			{
-						    				$gg = $fdjscqy[$k];
-						    			}
-						    			else
-						    			{
-						    				$gg = current($fdjscqy);
-						    			}
-						    			$temp = [
-						    				'engine_jml_id' => $old_jml_id,
-						    				'engine_no' => $v,
-						    				'engine_company' => $gg,
-						    				'engine_logo' => isset($fdjsb[$k])? $fdjsb[$k] : $fdjsb[0],
-						    				'engine_ml' =>  isset($pl[$k]) ? $pl[$k] : $pl[0],
-						    				'engine_kw' => isset($gl[$k]) ? $gl[$k] : $gl[0]
-						    			];
-						    			$finalDatabase->table('data_engine')->insert($temp);
-					    			}
-					    		}
-
+				    			$fdjsb =[0=>''];
 				    		}
 
+				    		$pl = explode('<br>', $data->pl);
+				    		$gl = explode('<br>', $data->gl);
+
+				    		// 以发动机型号数量为准，一个型号对应一个生产厂家一个功率一个排量
+				    		$fdjxh = array_filter($fdjxh);
+
+				    		foreach ($fdjxh as $k => $v)
+				    		{
+				    			// 型号与厂家可能存在多对一
+				    			if(!empty($fdjscqy[$k]))
+				    			{
+				    				// 有时候一个型号一个厂家
+				    				$gg = $fdjscqy[$k];
+				    			}
+				    			else
+				    			{
+				    				// 有时候几个型号一个厂家
+				    				$gg = current($fdjscqy);
+				    			}
+				    			$temp = [
+				    				'engine_jml_id' => $old_jml_id,
+				    				'engine_no' => $v,
+				    				'engine_company' => $gg,
+				    				// 商标
+				    				'engine_logo' => isset($fdjsb[$k])? $fdjsb[$k] : $fdjsb[0],
+				    				// 排量
+				    				'engine_ml' =>  isset($pl[$k]) ? $pl[$k] : $pl[0],
+				    				// 功率
+				    				'engine_kw' => isset($gl[$k]) ? $gl[$k] : $gl[0]
+				    			];
+				    			$finalDatabase->table('data_engine')->insert($temp);
+				    		}
 				    	}
 				    }
 				    else
@@ -732,9 +730,34 @@ class fivestep{
 					   		arsort($old_jml_plist_arr);
 					   		// 去重复
 					   		$old_jml_plist_arr = array_unique($old_jml_plist_arr);
-					   		$temp = [
-				    			'jml_plist' => implode(',', $old_jml_plist_arr),
-				    		];
+					   		// 如果是最小的需要更新数据
+					   		if($data->ggpc == end($old_jml_plist_arr))
+					   		{
+					   			// 获取批次发布时间
+				            	$res =  $finalDatabase->table('data_post')->where('dpt_num',$data->ggpc)
+				            			->first();
+				            	if(!empty($res))
+				            	{
+				            		$pici_shijian = $res->dpt_time;
+				            	}
+				            	else
+				            	{
+				            		// 该日期表示批次发布时间未找到
+				            		$pici_shijian = $data->ggpc;
+				            	}
+					   			$temp = [
+					    			'jml_plist' => implode(',', $old_jml_plist_arr),
+					    			'jml_min_p' => $data->ggpc,
+					    			'jml_min_t' => $pici_shijian
+
+					    		];
+					   		}
+					   		else
+					   		{
+						   		$temp = [
+					    			'jml_plist' => implode(',', $old_jml_plist_arr),
+					    		];
+					   		}
 					   		// 出现一个更老的批次，紧紧将批次列表更新
 			            	$finalDatabase->table('data_model')
 					            ->where('jml_id', $old_jml_id)
@@ -744,7 +767,6 @@ class fivestep{
 	            }
 	            echo $data->id." analyse completed! \r\n";
 	            $LibFile->WriteData($logFile, 4, $data->id.'数据整理完毕！');
-	            die;
 		    }
 		});
 	}
@@ -769,15 +791,26 @@ class fivestep{
 	}
 
 	/**
-	 * 初始化批次发布时间表
-	 * @param object $obj 对象
-	 * @return array
+	 * 初始化批次发布时间表s
+	 * @return void
 	 */
 	public static function initDataPost()
 	{
-		// 读取http://www.caam.org.cn/newslist/a96-1.html获取所有批次
-		// 初始化批次发布时间表
-		// 暂为手动
+		$temp = require('datapost.php'); 
+		// 未找到合适的数据源，暂为手动
+		$Schema = Capsule::connection('model_jdcswww')->getSchemaBuilder();
+		if($Schema->hasTable('data_post'))
+		{
+			$newTemp = array();
+			foreach ($temp as $k => $v)
+			{
+				$newTemp[] = ['dpt_num' =>$k, 'dpt_time' =>$v ];
+			}
+			// 入库所有参数
+			Capsule::connection('model_jdcswww')->table('data_post')->insert($newTemp);
+		}
+		
 	}
+
 
 }
