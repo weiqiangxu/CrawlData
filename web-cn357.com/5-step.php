@@ -14,5 +14,10 @@ require_once('./lib/LibFile.php');
 // 新建整理后的存储表
 fivestep::initable();
 
+
+// 自动读取http://www.caam.org.cn/newslist/a96-1.html获取每个批次的发布时间
+fivestep::initDataPost();
+
+
 // 并且表必须已经存在
 fivestep::cleandata();

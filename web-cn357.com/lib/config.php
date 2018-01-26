@@ -20,12 +20,12 @@ foreach ($Query as $Table)
 }
 
 // 用于存储原始数据数据的数据库
-$database = array_merge($database, ['database' => 'temp_cn357_'.date("Ymd",time())]);
+$database = array_merge($database, ['database' => 'temp_cn357_'.date("Ym",time())]);
 
-if (!in_array('temp_cn357_'.date("Ymd",time()),$Schema))
+if (!in_array('temp_cn357_'.date("Ym",time()),$Schema))
 {
 	// 如果数据库不存在则创建数据库
-    $SQL = sprintf('create database `%s` character set utf8 collate utf8_unicode_ci', 'temp_cn357_'.date("Ymd",time()));
+    $SQL = sprintf('create database `%s` character set utf8 collate utf8_unicode_ci', 'temp_cn357_'.date("Ym",time()));
     Capsule::connection('getdatabases')->statement($SQL);
 }
 
