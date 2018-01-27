@@ -390,12 +390,16 @@ class fivestep{
 			    	if(!empty($data->zj))
 			    	{
 			    		$rez = $finalDatabase->table('data_label')->where('lbl_en','zj')->first();
-			    		$temp = [
-			    			'dwl_jml_id' => $jml_id,
-			    			'dwl_lab_id' =>$rez->lbl_id,
-			    			'dwl_wheel' => $data->zj
-			    		];
-			    		$finalDatabase->table('data_wheel')->insert($temp);
+			    		$zjArr = explode(',', $data->zj);
+			    		foreach ($zjArr as $k => $v)
+			    		{
+				    		$temp = [
+				    			'dwl_jml_id' => $jml_id,
+				    			'dwl_lab_id' =>$rez->lbl_id,
+				    			'dwl_wheel' => $v
+				    		];
+				    		$finalDatabase->table('data_wheel')->insert($temp);
+			    		}
 			    	}
 
 			    	// 发动机
@@ -601,26 +605,20 @@ class fivestep{
 					    		$finalDatabase->table('data_weight')->insert($temp);
 				    		}
 				    	}
-				    	// 更新轴距
+				    	
+				    	// 删除所有该品牌车型的轴距
+				    	$finalDatabase->table('data_wheel')->where('dwl_jml_id', $old_jml_id)->delete();
+				    	// 轴距
 				    	if(!empty($data->zj))
 				    	{
-				    		$res = $finalDatabase->table('data_wheel')->where('dwl_jml_id', $old_jml_id)->first();
 				    		$rez = $finalDatabase->table('data_label')->where('lbl_en','zj')->first();
-				    		if(!empty($res))
+				    		$zjArr = explode(',', $data->zj);
+				    		foreach ($zjArr as $k => $v)
 				    		{
 					    		$temp = [
-					    			'dwl_wheel' => $data->zj
-					    		];
-					    		$finalDatabase->table('data_wheel')
-						            ->where('dwl_jml_id', $old_jml_id)
-						            ->update($temp);
-				    		}
-				    		else
-				    		{
-				    			$temp = [
 					    			'dwl_jml_id' => $old_jml_id,
-					    			'dwl_lab_id' => $rez['lbl_id'],
-					    			'dwl_wheel' => $data->zj
+					    			'dwl_lab_id' =>$rez->lbl_id,
+					    			'dwl_wheel' => $v
 					    		];
 					    		$finalDatabase->table('data_wheel')->insert($temp);
 				    		}
@@ -652,7 +650,7 @@ class fivestep{
 				    	$ids = array();
 				    	foreach ($res as $k => $v)
 				    	{
-				    		$ids[] = $v['dmv_vin_id'];
+				    		$ids[] = $v->dmv_vin_id;
 				    	}
 				    	$finalDatabase->table('data_vins')->where('vin_id', 'in', $ids)->delete();
 				    	$res = $finalDatabase->table('data_model_vins')
