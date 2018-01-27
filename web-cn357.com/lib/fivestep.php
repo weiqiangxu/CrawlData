@@ -409,7 +409,7 @@ class fivestep{
 			    		$fdjscqy = explode('<br>',$data->fdjscqy);
 
 			    		// youshihou以空格为间隔
-			    		if(strlen($data->fdjxh)>255)
+			    		if(strlen(current($fdjxh))>255)
 			    		{
 			    			$fdjxh = explode(' ', $data->fdjxh);
 			    			$fdjscqy = explode(' ',$data->fdjscqy);
@@ -445,8 +445,8 @@ class fivestep{
 			    			}
 			    			$temp = [
 			    				'engine_jml_id' => $jml_id,
-			    				'engine_no' => $v,
-			    				'engine_company' => $gg,
+			    				'engine_no' => trim($v),
+			    				'engine_company' => trim($gg),
 			    				// 商标
 			    				'engine_logo' => isset($fdjsb[$k])? $fdjsb[$k] : $fdjsb[0],
 			    				// 排量
@@ -690,7 +690,7 @@ class fivestep{
 				    		$fdjscqy = explode('<br>',$data->fdjscqy);
 
 				    		// youshihou以空格为间隔
-				    		if(strlen($data->fdjxh)>255)
+				    		if(strlen(current($fdjxh))>255)
 				    		{
 				    			$fdjxh = explode(' ', $data->fdjxh);
 				    			$fdjscqy = explode(' ',$data->fdjscqy);
@@ -726,8 +726,8 @@ class fivestep{
 				    			}
 				    			$temp = [
 				    				'engine_jml_id' => $old_jml_id,
-				    				'engine_no' => $v,
-				    				'engine_company' => $gg,
+				    				'engine_no' => trim($v),
+				    				'engine_company' => trim($gg),
 				    				// 商标
 				    				'engine_logo' => isset($fdjsb[$k])? $fdjsb[$k] : $fdjsb[0],
 				    				// 排量
