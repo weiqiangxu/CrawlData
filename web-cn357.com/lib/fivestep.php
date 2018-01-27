@@ -475,8 +475,8 @@ class fivestep{
 			    		foreach ($sbdhArr as $v)
 			    		{
 				    		$temp = [
-				    			'vin_3bit' => substr($v,0,3),
-				    			'vin_8bit' => substr($v,0,8)
+				    			'vin_3bit' => str_replace('××','',mb_substr($v,0,3)),
+				    			'vin_8bit' => str_replace('××','',mb_substr($v,0,8))
 				    		];
 				    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
 				    		$temp = [
@@ -663,8 +663,8 @@ class fivestep{
 				    		foreach ($sbdhArr as $v)
 				    		{
 					    		$temp = [
-					    			'vin_3bit' => substr($v,0,3),
-					    			'vin_8bit' => substr($v,0,8)
+					    			'vin_3bit' => str_replace('××','',mb_substr($v,0,3)),
+					    			'vin_8bit' => str_replace('××','',mb_substr($v,0,8))
 					    		];
 					    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
 					    		$temp = [
