@@ -668,7 +668,7 @@ class fivestep{
 					    		];
 					    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
 					    		$temp = [
-					    			'dmv_jml_id' => $jml_id,
+					    			'dmv_jml_id' => $old_jml_id,
 					    			'dmv_vin_id' => $vin_id
 					    		];
 					    		$finalDatabase->table('data_model_vins')->insert($temp);
