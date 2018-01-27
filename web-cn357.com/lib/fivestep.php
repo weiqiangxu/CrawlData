@@ -409,7 +409,7 @@ class fivestep{
 			    		$fdjscqy = explode('<br>',$data->fdjscqy);
 
 			    		// youshihou以空格为间隔
-			    		if(strlen($fdjxh)>255)
+			    		if(strlen($data->fdjxh)>255)
 			    		{
 			    			$fdjxh = explode(' ', $data->fdjxh);
 			    			$fdjscqy = explode(' ',$data->fdjscqy);
@@ -690,7 +690,7 @@ class fivestep{
 				    		$fdjscqy = explode('<br>',$data->fdjscqy);
 
 				    		// youshihou以空格为间隔
-				    		if(strlen($fdjxh)>255)
+				    		if(strlen($data->fdjxh)>255)
 				    		{
 				    			$fdjxh = explode(' ', $data->fdjxh);
 				    			$fdjscqy = explode(' ',$data->fdjscqy);
