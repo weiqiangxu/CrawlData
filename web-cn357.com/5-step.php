@@ -14,8 +14,5 @@ require_once('./lib/LibFile.php');
 // 新建整理后的存储表
 fivestep::initable();
 
-// 初始化批次以及对应发布时间
-fivestep::initDataPost();
-
 // 整理数据
 fivestep::cleandata();

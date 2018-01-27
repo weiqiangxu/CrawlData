@@ -122,6 +122,15 @@ class fivestep{
 			    $table->integer('dpt_num')->nullable()->comment('批次号');
 			    $table->string('dpt_time')->nullable()->comment('批次时间');
 			});
+			$temp = require('datapost.php'); 
+			// 未找到合适的数据源，暂为手动
+			$newTemp = array();
+			foreach ($temp as $k => $v)
+			{
+				$newTemp[] = ['dpt_num' =>$k, 'dpt_time' =>$v ];
+			}
+			// 入库所有参数
+			Capsule::connection('model_jdcswww')->table('data_post')->insert($newTemp);
 			echo "init table data_post!\r\n";
 		}
 		
@@ -791,28 +800,5 @@ class fivestep{
 	    }
 	    return $obj;
 	}
-
-	/**
-	 * 初始化批次发布时间表s
-	 * @return void
-	 */
-	public static function initDataPost()
-	{
-		$temp = require('datapost.php'); 
-		// 未找到合适的数据源，暂为手动
-		$Schema = Capsule::connection('model_jdcswww')->getSchemaBuilder();
-		if($Schema->hasTable('data_post'))
-		{
-			$newTemp = array();
-			foreach ($temp as $k => $v)
-			{
-				$newTemp[] = ['dpt_num' =>$k, 'dpt_time' =>$v ];
-			}
-			// 入库所有参数
-			Capsule::connection('model_jdcswww')->table('data_post')->insert($newTemp);
-		}
-		
-	}
-
 
 }
