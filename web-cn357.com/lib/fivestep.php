@@ -407,6 +407,13 @@ class fivestep{
 			    	{
 			    		$fdjxh = explode('<br>', $data->fdjxh);
 			    		$fdjscqy = explode('<br>',$data->fdjscqy);
+
+			    		// youshihou以空格为间隔
+			    		if(strlen($fdjxh)>255)
+			    		{
+			    			$fdjxh = explode(' ', $data->fdjxh);
+			    			$fdjscqy = explode(' ',$data->fdjscqy);
+			    		}
 			    		// 处理发动机商标
 			    		if(!empty($data->fdjsb))
 			    		{
@@ -681,6 +688,13 @@ class fivestep{
 				    	{
 				    		$fdjxh = explode('<br>', $data->fdjxh);
 				    		$fdjscqy = explode('<br>',$data->fdjscqy);
+
+				    		// youshihou以空格为间隔
+				    		if(strlen($fdjxh)>255)
+				    		{
+				    			$fdjxh = explode(' ', $data->fdjxh);
+				    			$fdjscqy = explode(' ',$data->fdjscqy);
+				    		}
 				    		// 处理发动机商标
 				    		if(!empty($data->fdjsb))
 				    		{
