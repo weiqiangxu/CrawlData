@@ -41,8 +41,8 @@ class fivestep{
 			    $table->string('engine_no')->default('')->comment('发动机型号');
 			    $table->string('engine_company')->default('')->comment('发动机生产企业');
 			    $table->string('engine_logo')->default('')->comment('发动机商标');
-			    $table->string('engine_ml')->default('')->comment('发动机排量');
-			    $table->string('engine_kw')->default('')->comment('发动机功率');
+			    $table->integer('engine_ml')->nullable()->comment('发动机排量');
+			    $table->integer('engine_kw')->nullable('')->comment('发动机功率');
 			});
 			echo "init table data_engine!\r\n";
 		}
@@ -53,7 +53,7 @@ class fivestep{
 			$Schema->create('data_info', function (Blueprint $table) {
 			    $table->increments('id');
 			    $table->integer('ino_jml_id')->nullable()->comment('品牌车型ID');
-			    $table->string('ino_label')->default('')->comment('参数ID');
+			    $table->integer('ino_label')->nullable()->comment('参数ID');
 			    $table->string('ino_text')->default('')->comment('参数名称');
 			    $table->text('ino_value')->nullable()->comment('参数值');
 			});
@@ -82,8 +82,8 @@ class fivestep{
 			    $table->integer('jml_jme_id')->nullable()->comment('生产商家品牌ID');
 			    $table->integer('jml_car_id')->nullable()->comment('汽车类型');
 			    $table->string('jml_make')->nullable()->comment('生产商家');
-			    $table->string('jml_model')->nullable()->comment('车型');
-			    $table->string('jml_name')->nullable()->comment('汽车类型');
+			    $table->string('jml_model')->nullable()->comment('公告型号');
+			    $table->string('jml_name')->nullable()->comment('类型');
 			    $table->string('jml_company')->nullable()->comment('企业名称');
 			    $table->text('jml_plist')->nullable()->comment('批次列表');
 			    $table->integer('jml_max_p')->nullable()->comment('最新批次');
@@ -91,12 +91,12 @@ class fivestep{
 			    $table->integer('jml_min_p')->nullable()->comment('最小批次');
 				$table->string('jml_min_t')->nullable()->comment('最小批次发布时间');
 				$table->string('jml_cartons')->nullable()->comment('货箱');
-				$table->string('jml_axis')->nullable()->comment('轴');
+				$table->integer('jml_axis')->nullable()->comment('轴数');
 				$table->string('jml_exterior')->nullable()->comment('外观');
-				$table->string('jml_weight')->nullable()->comment('重量');
-				$table->string('jml_wheel')->nullable()->comment('轴距');
-				$table->string('jml_fuel')->nullable()->comment('燃油');
-				$table->string('jml_people')->nullable()->comment('乘坐人数');
+				$table->integer('jml_weight')->nullable()->comment('总质量');
+				$table->integer('jml_wheel')->nullable()->comment('轴距');
+				$table->string('jml_fuel')->nullable()->comment('燃料种类');
+				$table->string('jml_people')->nullable()->comment('额定载客');
 			});
 			echo "init table data_make!\r\n";
 		}
@@ -166,7 +166,7 @@ class fivestep{
 			    $table->increments('dwl_id');
 			    $table->integer('dwl_jml_id')->nullable()->comment('品牌车型ID');
 			    $table->integer('dwl_lab_id')->nullable()->comment('参数名称ID');
-			    $table->string('dwl_wheel')->nullable()->comment('轴距');
+			    $table->integer('dwl_wheel')->nullable()->comment('轴距');
 			});
 			echo "init table data_wheel!\r\n";
 		}
@@ -363,10 +363,10 @@ class fivestep{
 	            		'jml_min_p' => $data->ggpc,
 	            		'jml_min_t' => $pici_shijian,
 	            		'jml_cartons' => $jml_cartons,
-	            		'jml_axis' => $data->zs,
+	            		'jml_axis' => (int)$data->zs?(int)$data->zs:NULL,
 	            		'jml_exterior' => $jml_exterior,
-	            		'jml_weight' => $data->zzl,
-	            		'jml_wheel'=> $data->zj,
+	            		'jml_weight' => $data->zzl?(int)$data->zzl:NULL,
+	            		'jml_wheel'=> $data->zj?(int)$data->zj:NULL,
 	            		'jml_fuel' => $data->rlzl,
 	            		'jml_people'=>$data->jsszcrs
 	            	];
@@ -375,7 +375,7 @@ class fivestep{
 	            	$jml_id = $finalDatabase->table('data_model')->insertGetId($temp);
 
 			    	// 汽车长宽高
-			    	if(!empty($data->zcz) && !empty($data->zcg) && !empty($data->zck))
+			    	if(!empty((int)$data->zcz) && !empty((int)$data->zcg) && !empty((int)$data->zck))
 			    	{
 			    		$temp = [
 			    			'dwt_jml_id' => $jml_id,
@@ -393,12 +393,15 @@ class fivestep{
 			    		$zjArr = explode(',', $data->zj);
 			    		foreach ($zjArr as $k => $v)
 			    		{
-				    		$temp = [
-				    			'dwl_jml_id' => $jml_id,
-				    			'dwl_lab_id' =>$rez->lbl_id,
-				    			'dwl_wheel' => $v
-				    		];
-				    		$finalDatabase->table('data_wheel')->insert($temp);
+			    			if((int)$v)
+			    			{
+					    		$temp = [
+					    			'dwl_jml_id' => $jml_id,
+					    			'dwl_lab_id' =>$rez->lbl_id,
+					    			'dwl_wheel' => (int)$v
+					    		];
+					    		$finalDatabase->table('data_wheel')->insert($temp);
+			    			}
 			    		}
 			    	}
 
@@ -450,9 +453,9 @@ class fivestep{
 			    				// 商标
 			    				'engine_logo' => isset($fdjsb[$k])? $fdjsb[$k] : $fdjsb[0],
 			    				// 排量
-			    				'engine_ml' =>  isset($pl[$k]) ? $pl[$k] : $pl[0],
+			    				'engine_ml' =>  intval(isset($pl[$k]) ? $pl[$k] : $pl[0]),
 			    				// 功率
-			    				'engine_kw' => isset($gl[$k]) ? $gl[$k] : $gl[0]
+			    				'engine_kw' => intval(isset($gl[$k]) ? $gl[$k] : $gl[0])
 			    			];
 			    			$finalDatabase->table('data_engine')->insert($temp);
 			    		}
@@ -482,15 +485,18 @@ class fivestep{
 			    		foreach ($sbdhArr as $v)
 			    		{
 				    		$temp = [
-				    			'vin_3bit' => str_replace('×','',mb_substr($v,0,3)),
-				    			'vin_8bit' => str_replace('×','',mb_substr($v,0,8))
+				    			'vin_3bit' => trim(str_replace('×','',mb_substr($v,0,3))),
+				    			'vin_8bit' => trim(str_replace('×','',mb_substr($v,0,8)))
 				    		];
+				    		if($temp['vin_3bit']==''||$temp['vin_8bit']==''){continue;}
+
 				    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
 				    		$temp = [
 				    			'dmv_jml_id' => $jml_id,
 				    			'dmv_vin_id' => $vin_id
 				    		];
 				    		$finalDatabase->table('data_model_vins')->insert($temp);
+				    		
 			    		}
 			    	}		    	
 	            }
@@ -571,7 +577,7 @@ class fivestep{
 		            		'jml_max_t' => $pici_shijian,
 		            		// 货箱长宽高
 		            		'jml_cartons' => $jml_cartons,
-		            		'jml_axis' => $data->zs,
+		            		'jml_axis' => (int)$data->zs?(int)$data->zs:0,
 		            		// 外观
 		            		'jml_exterior' => $jml_exterior,
 		            		'jml_weight' => $data->zzl,
@@ -670,12 +676,14 @@ class fivestep{
 				    		foreach ($sbdhArr as $v)
 				    		{
 					    		$temp = [
-					    			'vin_3bit' => str_replace('×','',mb_substr($v,0,3)),
-					    			'vin_8bit' => str_replace('×','',mb_substr($v,0,8))
+					    			'vin_3bit' => trim(str_replace('×','',mb_substr($v,0,3))),
+					    			'vin_8bit' => trim(str_replace('×','',mb_substr($v,0,8)))
 					    		];
+					    		if($temp['vin_3bit']==''||$temp['vin_8bit']==''){continue;}
+						    	
 					    		$vin_id = $finalDatabase->table('data_vins')->insertGetId($temp);
 					    		$temp = [
-					    			'dmv_jml_id' => $old_jml_id,
+					    			'dmv_jml_id' => $jml_id,
 					    			'dmv_vin_id' => $vin_id
 					    		];
 					    		$finalDatabase->table('data_model_vins')->insert($temp);
@@ -731,9 +739,9 @@ class fivestep{
 				    				// 商标
 				    				'engine_logo' => isset($fdjsb[$k])? $fdjsb[$k] : $fdjsb[0],
 				    				// 排量
-				    				'engine_ml' =>  isset($pl[$k]) ? $pl[$k] : $pl[0],
+				    				'engine_ml' =>  intval(isset($pl[$k]) ? $pl[$k] : $pl[0]),
 				    				// 功率
-				    				'engine_kw' => isset($gl[$k]) ? $gl[$k] : $gl[0]
+				    				'engine_kw' => intval(isset($gl[$k]) ? $gl[$k] : $gl[0])
 				    			];
 				    			$finalDatabase->table('data_engine')->insert($temp);
 				    		}
