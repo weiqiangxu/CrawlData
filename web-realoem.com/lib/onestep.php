@@ -46,7 +46,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_prod', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_prod create\r\n";
