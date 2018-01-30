@@ -11,7 +11,13 @@ class mineload{
 		// 设置获取到内容不直接输出到页面上
 		curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
 		// 设置等待时间无限长，强制必须获取到内容
-		curl_setopt($ch,CURLOPT_CONNECTTIMEOUT_MS,0);
+
+		curl_setopt($ch,CURLOPT_NOSIGNAL,1);
+          
+
+        curl_setopt($ch,CURLOPT_FOLLOWLOCATION,1);
+
+		// curl_setopt($ch,CURLOPT_CONNECTTIMEOUT_MS,0);
 		// CURLLOPT_HEADER设置为0表示不返回HTTP头部信息
 		curl_setopt($ch,CURLOPT_HEADER,0);
 		

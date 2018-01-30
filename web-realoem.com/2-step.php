@@ -5,7 +5,7 @@ require_once('../resources/autoload.php');
 // 初始化数据库配置
 require_once('./lib/config.php');
 // 加载自己项目资源库
-require_once('./lib/onestep.php');
+require_once('./lib/twostep.php');
 // 自己的下载类
 require_once('./lib/download.php');
 // 路径处理类
@@ -13,10 +13,19 @@ require_once('./lib/LibDir.php');
 // 文件处理类
 require_once('./lib/LibFile.php');
 
-// 初始化所有表格
-onestep::initable();
 
-// 获取所有的body链接
-onestep::body();
+// 获取所有的model链接
+twostep::model();
 
+// 获取所有的market链接
+twostep::market();
 
+// 获取所有的prod链接
+twostep::prod();
+
+// 获取所有的engine链接
+twostep::engine();
+// 解析获取所有的steering链接
+twostep::steering();
+// 获取原生数据
+twostep::rawdata();
