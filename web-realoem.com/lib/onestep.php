@@ -24,7 +24,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_model', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_model create\r\n";
@@ -35,7 +35,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_market', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_market create\r\n";
@@ -46,7 +46,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_prod', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_prod create\r\n";
@@ -57,7 +57,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_engine', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_engine create\r\n";
@@ -68,7 +68,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_steering', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_steering create\r\n";
@@ -88,7 +88,7 @@ class onestep{
 			    $table->string('steering')->nullable();
 			    $table->string('code')->nullable();
 			    $table->string('name')->nullable();
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			});
 			echo "table rawdata create\r\n";
 		}
@@ -110,7 +110,7 @@ class onestep{
 		{
 			Capsule::schema()->create('url_body', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable();
+			    $table->string('url')->nullable()->unique();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_body create\r\n";

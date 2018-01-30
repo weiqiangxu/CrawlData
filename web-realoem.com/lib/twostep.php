@@ -74,15 +74,22 @@ class twostep{
 						{
 						    // 存储进去所有的&body
 						    $temp = [
-						    	'url' => $data->url.'&model='.$article->value,
+						    	'url' => $data->url.'&model='.str_replace(" ","+",$article->value),
 						    	'status' => 'wait',
 						    ];
-						    Capsule::table('url_model')->insert($temp);
-				            // 更改SQL语句
-				            Capsule::table('url_body')
-						            ->where('id', $data->id)
-						            ->update(['status' =>'readed']);
+						    $empty = Capsule::table('url_model')
+						    	->where('url',$data->url.'&model='.str_replace(" ","+",$article->value))
+						    	->get()
+						    	->isEmpty();
+						    if($empty)
+						    {
+							    Capsule::table('url_model')->insert($temp);					    	
+						    }
 						}
+			            // 更改SQL语句
+			            Capsule::table('url_body')
+					            ->where('id', $data->id)
+					            ->update(['status' =>'readed']);
 					    // 命令行执行时候不需要经过apache直接输出在窗口
 			            echo 'body '.$data->id.'.html'."  analyse successful!\r\n";
 			            // 记录成功
@@ -159,12 +166,19 @@ class twostep{
 						    	'url' => $data->url.'&market='.$article->value,
 						    	'status' => 'wait',
 						    ];
-						    Capsule::table('url_market')->insert($temp);
-				            // 更改SQL语句
-				            Capsule::table('url_model')
-						            ->where('id', $data->id)
-						            ->update(['status' =>'readed']);
+						    $empty = Capsule::table('url_market')
+						    	->where('url',$data->url.'&market='.$article->value)
+						    	->get()
+						    	->isEmpty();
+						    if($empty)
+						    {
+					    		Capsule::table('url_market')->insert($temp);
+						    }						
 						}
+			            // 更改SQL语句
+			            Capsule::table('url_model')
+					            ->where('id', $data->id)
+					            ->update(['status' =>'readed']);
 					    // 命令行执行时候不需要经过apache直接输出在窗口
 			            echo 'model '.$data->id.'.html'."  analyse successful!\r\n";
 			            // 记录成功
@@ -240,7 +254,15 @@ class twostep{
 						    	'url' => $data->url.'&prod='.$article->value,
 						    	'status' => 'wait',
 						    ];
-						    Capsule::table('url_prod')->insert($temp);
+
+						    $empty = Capsule::table('url_prod')
+						    	->where('url',$data->url.'&prod='.$article->value)
+						    	->get()
+						    	->isEmpty();
+						    if($empty)
+						    {
+					    		Capsule::table('url_prod')->insert($temp);
+						    }
 						}
 			            // 更改SQL语句
 			            Capsule::table('url_market')
@@ -322,7 +344,15 @@ class twostep{
 						    	'url' => $data->url.'&engine='.$article->value,
 						    	'status' => 'wait',
 						    ];
-						    Capsule::table('url_engine')->insert($temp);
+
+							$empty = Capsule::table('url_engine')
+						    	->where('url',$data->url.'&engine='.$article->value)
+						    	->get()
+						    	->isEmpty();
+						    if($empty)
+						    {
+					    		Capsule::table('url_engine')->insert($temp);
+						    }
 						}
 			            // 更改SQL语句
 			            Capsule::table('url_prod')
@@ -406,7 +436,14 @@ class twostep{
 							    	'url' => $data->url.'&steering='.$article->value,
 							    	'status' => 'wait',
 							    ];
-							    Capsule::table('url_steering')->insert($temp);
+								$empty = Capsule::table('url_steering')
+							    	->where('url',$data->url.'&steering='.$article->value)
+							    	->get()
+							    	->isEmpty();
+							    if($empty)
+							    {
+						    		Capsule::table('url_steering')->insert($temp);
+							    }
 					            // 更改SQL语句
 							}
 				            Capsule::table('url_engine')
@@ -419,7 +456,14 @@ class twostep{
 							    	'url' => $data->url,
 							    	'status' => 'wait',
 							    ];
-							Capsule::table('url_steering')->insert($temp); 
+							$empty = Capsule::table('url_steering')
+						    	->where('url',$data->url)
+						    	->get()
+						    	->isEmpty();
+						    if($empty)
+						    {
+					    		Capsule::table('url_steering')->insert($temp);
+						    }
 							Capsule::table('url_engine')
 						            ->where('id', $data->id)
 						            ->update(['status' =>'readed']);
@@ -539,8 +583,16 @@ class twostep{
 			            $temp['code'] = trim($code[1]);
 			            $temp['url'] = $data->url;
 
+
 			            // 入库数据
-			          	Capsule::table('rawdata')->insert($temp); 
+						$empty = Capsule::table('rawdata')
+					    	->where('url',$data->url)
+					    	->get()
+					    	->isEmpty();
+					    if($empty)
+					    {
+			          		Capsule::table('rawdata')->insert($temp); 
+					    }
 
 					    // 命令行执行时候不需要经过apache直接输出在窗口
 			            echo 'engine '.$data->id.'.html'."  analyse successful!\r\n";

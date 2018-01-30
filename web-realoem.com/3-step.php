@@ -14,12 +14,9 @@ require_once('./lib/LibDir.php');
 require_once('./lib/LibFile.php');
 
 
-// 获取所有的model链接
-twostep::model();
-
-// 获取所有的market链接
-twostep::market();
-
-// 获取所有的prod链接
-twostep::prod();
-
+// 获取所有的engine链接
+twostep::engine();
+// 解析获取所有的steering链接
+twostep::steering();
+// 获取原生数据
+twostep::rawdata();
