@@ -19,7 +19,7 @@ class twostep{
 	public static function model()
 	{
 		// 下载所有的body页面
-		Capsule::table('url_body')->where('status','wait')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_body')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -58,7 +58,7 @@ class twostep{
 		    }
 		});
 		// 现在解析body获取所有的model的url
-		Capsule::table('url_body')->where('status','completed')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_body')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -109,7 +109,7 @@ class twostep{
 	public static function market()
 	{
 		// 下载所有的model页面
-		Capsule::table('url_model')->where('status','wait')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_model')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -152,7 +152,7 @@ class twostep{
 		});
 
 		// 现在解析body获取所有的model的url
-		Capsule::table('url_model')->where('status','completed')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_model')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -202,7 +202,7 @@ class twostep{
 	public static function prod()
 	{
 		// 下载所有的market页面
-		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -245,7 +245,7 @@ class twostep{
 		});
 
 		// 现在解析body获取所有的model的url
-		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -298,7 +298,7 @@ class twostep{
 	public static function engine()
 	{
 		// 下载所有的prod页面
-		Capsule::table('url_prod')->where('status','wait')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_prod')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -340,7 +340,7 @@ class twostep{
 		    }
 		});
 		// 现在解析body获取所有的model的url
-		Capsule::table('url_prod')->where('status','completed')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_prod')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -391,7 +391,7 @@ class twostep{
 	public static function steering()
 	{
 		// 下载所有的engine页面
-		Capsule::table('url_engine')->where('status','wait')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_engine')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -434,7 +434,7 @@ class twostep{
 		});
 
 		// 现在解析body获取所有的model的url
-		Capsule::table('url_engine')->where('status','completed')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_engine')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -507,7 +507,7 @@ class twostep{
 	public static function rawdata()
 	{
 		// 下载所有的最终级别页面
-		Capsule::table('url_steering')->where('status','wait')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_steering')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -551,7 +551,7 @@ class twostep{
 		});
 
 		// 现在解析body获取所有的model的url
-		Capsule::table('url_steering')->where('status','readed')->orderBy('id')->chunk(2,function($datas){
+		Capsule::table('url_steering')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$LibFile = new LibFile();
 			// 记录第三步骤日志
 			$logFile = PROJECT_APP_DOWN.'onestep.txt';
@@ -591,13 +591,24 @@ class twostep{
 							$temp['steering'] = trim($dom->find("#steering [selected=selected]",0)->innertext);
 						}
 
-
-						if($dom->find('.searchResults',0)->first_child())
+						// code
+						if($dom->find('.searchResults',0))
 						{
-							// 获取所有的body
-							$code = $dom->find('.searchResults',0)->first_child()->innertext;
-							$code = trim(str_replace("You Have Selected: ", "", $code));
-							$code = explode("Type Code:",$code);
+							if($dom->find('.searchResults',0)->first_child())
+							{
+								// 获取所有的body
+								$code = $dom->find('.searchResults',0)->first_child()->innertext;
+								$code = trim(str_replace("You Have Selected: ", "", $code));
+								$code = explode("Type Code:",$code);
+							}
+							else
+							{
+								$code = "";
+								// 命令行执行时候不需要经过apache直接输出在窗口
+					            echo 'url_steering '.$data->id.'.html'."  code  not fund !\r\n";
+					            // 记录成功
+					            $LibFile->WriteData($logFile, 4,'url_steering '.$data->id.'.html'.'code没找到！');
+							}
 						}
 						else
 						{
@@ -607,6 +618,8 @@ class twostep{
 				            // 记录成功
 				            $LibFile->WriteData($logFile, 4,'url_steering '.$data->id.'.html'.'code没找到！');
 						}
+
+
 			            // 入库rawdata
 			            
 			            $temp['name'] = trim(current($code));
@@ -624,22 +637,24 @@ class twostep{
 			          		Capsule::table('rawdata')->insert($temp); 
 					    }
 
+
 					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'engine '.$data->id.'.html'."  analyse successful!\r\n";
+			            echo 'steering '.$data->id.'.html'."  analyse successful!\r\n";
 			            // 记录成功
-			            $LibFile->WriteData($logFile, 4,'engine '.$data->id.'.html'.'分析完成！');
+			            $LibFile->WriteData($logFile, 4,'steering '.$data->id.'.html'.'分析完成！');
+
+						// 更改SQL语句
+			            Capsule::table('url_steering')
+					            ->where('id', $data->id)
+					            ->update(['status' =>'readed']);
 					}
 					else
 					{
 						// 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'url_steering '.$data->id.'.html'." not fund !\r\n";
+			            echo 'steering '.$data->id.'.html'." not fund !\r\n";
 			            // 记录成功
-			            $LibFile->WriteData($logFile, 4,'url_steering '.$data->id.'.html'.' 没找到！');
+			            $LibFile->WriteData($logFile, 4,'steering '.$data->id.'.html'.' 没找到！');
 					}
-					// 更改SQL语句
-		            Capsule::table('url_steering')
-				            ->where('id', $data->id)
-				            ->update(['status' =>'readed']);
 		    	}
 		    }
 		});
