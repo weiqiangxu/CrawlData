@@ -137,10 +137,6 @@ class onestep{
 			foreach ($articles as $k => $v)
 			{
 				$newarticles[] = $v;
-				if($v == 'F21')
-				{
-					break;
-				}
 			}
 
 			$LibFile->WriteData($logFile, 4, 'series 分析完毕！');
