@@ -35,6 +35,11 @@ class twostep{
 		    	{
 		    		$mineload = new mineload();
 		    		$res = $mineload->curldownpage($data->url);
+		    		if(strpos($res['html'],"You have accessed our pages too fast" ))
+		    		{
+		    			// 返回空文件跳出循环
+		    			continue;
+		    		}
 		    		if($res['info']['http_code']== 200 )
 		    		{
 		    			// 保存文件
@@ -120,6 +125,11 @@ class twostep{
 		    	{
 		    		$mineload = new mineload();
 		    		$res = $mineload->curldownpage($data->url);
+		    		if(strpos($res['html'],"You have accessed our pages too fast" ))
+		    		{
+		    			// 返回空文件跳出循环
+		    			continue;
+		    		}
 		    		if($res['info']['http_code']== 200 )
 		    		{
 		    			// 保存文件
@@ -208,6 +218,11 @@ class twostep{
 		    	{
 		    		$mineload = new mineload();
 		    		$res = $mineload->curldownpage($data->url);
+		    		if(strpos($res['html'],"You have accessed our pages too fast" ))
+		    		{
+		    			// 返回空文件跳出循环
+		    			continue;
+		    		}
 		    		if($res['info']['http_code']== 200 )
 		    		{
 		    			// 保存文件
@@ -299,6 +314,11 @@ class twostep{
 		    	{
 		    		$mineload = new mineload();
 		    		$res = $mineload->curldownpage($data->url);
+		    		if(strpos($res['html'],"You have accessed our pages too fast" ))
+		    		{
+		    			// 返回空文件跳出循环
+		    			continue;
+		    		}
 		    		if($res['info']['http_code']== 200 )
 		    		{
 		    			// 保存文件
@@ -387,6 +407,11 @@ class twostep{
 		    	{
 		    		$mineload = new mineload();
 		    		$res = $mineload->curldownpage($data->url);
+		    		if(strpos($res['html'],"You have accessed our pages too fast" ))
+		    		{
+		    			// 返回空文件跳出循环
+		    			continue;
+		    		}
 		    		if($res['info']['http_code']== 200 )
 		    		{
 		    			// 保存文件
@@ -498,6 +523,11 @@ class twostep{
 		    	{
 		    		$mineload = new mineload();
 		    		$res = $mineload->curldownpage($data->url);
+		    		if(strpos($res['html'],"You have accessed our pages too fast" ))
+		    		{
+		    			// 返回空文件跳出循环
+		    			continue;
+		    		}
 		    		if($res['info']['http_code']== 200 )
 		    		{
 		    			// 保存文件

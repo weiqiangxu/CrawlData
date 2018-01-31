@@ -13,6 +13,5 @@ require_once('./lib/LibDir.php');
 // 文件处理类
 require_once('./lib/LibFile.php');
 
-
-// 解析获取所有的steering链接
-twostep::steering();
+// 获取原生数据
+twostep::rawdata();
