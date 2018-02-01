@@ -51,10 +51,15 @@ class twostep{
 		            // 记录成功
 		            $LibFile->WriteData($logFile, 4,$data->id.'.html'.'下载完成！');
 		    	}
-	            // 更改SQL语句
-	            Capsule::table('url_body')
-			            ->where('id', $data->id)
-			            ->update(['status' =>'completed']);
+
+		    	if(file_exists($file))
+		    	{
+		            // 更改SQL语句
+		            Capsule::table('url_body')
+				            ->where('id', $data->id)
+				            ->update(['status' =>'completed']);
+		    	}
+
 		    }
 		});
 		// 现在解析body获取所有的model的url
@@ -626,6 +631,38 @@ class twostep{
 			            $temp['code'] = trim($code[1]);
 			            $temp['url'] = $data->url;
 
+
+			            // 现在入库所有字段的值
+			            $url = str_replace("http://www.realoem.com/bmw/enUS/select?product=P&archive=0&", "", $data->url);
+			           	$url = explode("&", $url);
+			           	// 循环url读取
+			           	foreach ($url as $v)
+			           	{
+			           		$v = explode("=", $v);
+			           		if(current($v)!='model')
+			           		{
+			           			$k = current($v);
+			           			$k = $k.'2';
+			           			$temp[$k] = $v[1];
+			           		}
+			           	}
+			           	// 获取model的value 
+			           	if($dom->find('#model [selected=selected]',0))
+						{
+							$temp['model2'] = $dom->find('#model [selected=selected]',0)->value;
+						}
+
+						// 入库隐藏字段
+
+						if($dom->find('[name=id]',0))
+						{
+							$hidden = $dom->find('[name=id]',0)->value;
+						}
+						else
+						{
+							$hidden = 'no found!';
+						}
+						$temp['hidden'] = $hidden;
 
 			            // 入库数据
 						$empty = Capsule::table('rawdata')
