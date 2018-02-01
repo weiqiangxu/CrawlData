@@ -7,7 +7,7 @@ class mineload{
 		// 防止foreach跑的太快未获取到内容直接报prev_sibling none object
 		$ch = curl_init();
 		// 2. 设置选项，包括URL
-		curl_setopt($ch,CURLOPT_URL,$url);
+		curl_setopt($ch,CURLOPT_URL,html_entity_decode($url));
 		// 设置获取到内容不直接输出到页面上
 		curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
 		// 设置等待时间无限长，强制必须获取到内容

@@ -634,6 +634,7 @@ class twostep{
 
 			            // 现在入库所有字段的值
 			            $url = str_replace("http://www.realoem.com/bmw/enUS/select?product=P&archive=0&", "", $data->url);
+			            $url = html_entity_decode($url);
 			           	$url = explode("&", $url);
 			           	// 循环url读取
 			           	foreach ($url as $v)
@@ -663,6 +664,11 @@ class twostep{
 							$hidden = 'no found!';
 						}
 						$temp['hidden'] = $hidden;
+
+						foreach ($temp as $k => $v)
+						{
+							$temp[$k] = html_entity_decode($v);
+						}
 
 			            // 入库数据
 						$empty = Capsule::table('rawdata')
