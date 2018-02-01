@@ -28,10 +28,10 @@
 
 ### 注意：
 
-1.  *1-step.php会读取[RealOEM.com](http://www.realoem.com/bmw/enUS/select?product=P&archive=0) Series且必须一次性执行完不能出错否则需要删除数据库重新来过*
+1.  *数据来源：[RealOEM.com](http://www.realoem.com/bmw/enUS/select?product=P&archive=0)*
 
-2.  *2-step.php、3-step.php、4-step.php、5-step.php加入过滤网站防DDOS攻击页面操作、数据字段唯一、断点下载，所以可以随时关闭随时开启无限开启命令行窗口运行，但是要按顺序执行并且执行完毕否则出现数据不全，过程之中dom解析入库时候虽然加入isEmpty校验但是由于数据库并发请求会出现pdo exception 字段唯一导致插入失败，这是正常的，关掉这个宕掉的进程就可以，数据不会错就行了。*
+2.  *每个脚本可以多开窗口采集并支持断点采集，并且请确保每个脚本执行完毕否则出现数据不全*
 
-4.  *每个脚本都需要执行多几次直到没有任何输出（5-step.php会输出 analyse is completed !），下载的当curl请求一直未返回也会结束脚本，analyse也会出现漏掉几个页面没解析的，但是有字段记录所以多次执行可以完全读完但不会出错*
+4.  *多窗口执行指令过程之中可能会出现pdo exception url unique 这是多窗口并发插入导致的，因为加入unque防止数据重复(尽管insert之前isEmpty校验过)，只要最终数据是正确的就可以*
 
 4.  *执行结果：自动创建的数据库 temp_realoem_201801 - rawdata 存储原始数据。*
