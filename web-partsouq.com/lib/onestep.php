@@ -70,6 +70,34 @@ class onestep{
 			});
 			echo "table url_pic create\r\n";
 		}
+		// rawdata
+		if(!Capsule::schema()->hasTable('rawdata'))
+		{
+			Capsule::schema()->create('rawdata', function (Blueprint $table){
+			    $table->increments('id');
+			    $table->string('simple')->nullable();
+			    $table->string('brand')->nullable();
+			    $table->string('code')->nullable();
+			    $table->string('name')->nullable();
+			    $table->string('destination')->nullable();
+			    $table->string('transmission')->nullable();
+			    $table->string('series_code')->nullable();
+			    $table->string('engine')->nullable();
+			    $table->string('bodystyle')->nullable();
+			    $table->string('steering')->nullable();
+			    $table->string('model')->nullable();
+			    $table->string('series_description')->nullable();
+			    // 描述图片地址
+			    $table->text('image')->nullable();
+			    // 配件左侧介绍信息json格式存储 {1:msg1,2:msg2}
+			    $table->longText('detail_json')->nullable();
+			    // 页面网址
+			    $table->text('url')->nullable();
+			    // 页面网址md5数值用于防止重复
+			    $table->text('url_md5')->unique();
+			});
+			echo "table url_pic create\r\n";
+		}
 	}
 
 	// // 获取所有如下链接=>url_brand
