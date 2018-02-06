@@ -24,7 +24,8 @@ class onestep{
 		{
 			Capsule::schema()->create('url_brand', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable()->unique();
+			    $table->string('md5_url')->unique();
+			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_brand create\r\n";
@@ -34,7 +35,8 @@ class onestep{
 		{
 			Capsule::schema()->create('url_model', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable()->unique();
+			    $table->string('md5_url')->unique();
+			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_model create\r\n";
@@ -44,7 +46,8 @@ class onestep{
 		{
 			Capsule::schema()->create('url_car', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable()->unique();
+			    $table->string('md5_url')->unique();
+			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_car create\r\n";
@@ -54,7 +57,8 @@ class onestep{
 		{
 			Capsule::schema()->create('url_part', function (Blueprint $table){
 			    $table->increments('id');
-			    $table->string('url')->nullable()->unique();
+			    $table->string('md5_url')->unique();
+			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
 			echo "table url_part create\r\n";
@@ -124,9 +128,10 @@ class onestep{
 			    $temp = [
 			    	'url' => $prefix_catalog.$article->find("a",0)->href,
 			    	'status' => 'wait',
+			    	'md5_url' => md5($prefix_catalog.$article->find("a",0)->href)
 			    ];
 			    $empty = Capsule::table('url_brand')
-			    	->where('url',$prefix_catalog.$article->find("a",0)->href)
+			    	->where('md5_url',md5($prefix_catalog.$article->find("a",0)->href))
 			    	->get()
 			    	->isEmpty();
 			    if($empty)
@@ -201,11 +206,12 @@ class onestep{
 						{
 						    // 存储进去所有的&model
 						    $temp = [
-						    	'url' => html_entity_decode($prefix.$article->href),
+						    	'url' => $prefix.$article->href,
 						    	'status' => 'wait',
+						    	'md5_url' => md5($prefix.$article->href)
 						    ];
 						    $empty = Capsule::table('url_model')
-						    	->where('url',html_entity_decode($prefix.$article->href))
+						    	->where('md5_url',md5($prefix.$article->href))
 						    	->get()
 						    	->isEmpty();
 						    if($empty)

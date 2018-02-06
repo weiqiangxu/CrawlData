@@ -73,11 +73,12 @@ class twostep{
 							}
 						    // 存储进去所有的&url_model
 						    $temp = [
-						    	'url' => html_entity_decode($prefix.$tr->find("a",0)->href),
+						    	'url' => $prefix.$tr->find("a",0)->href,
+						    	'md5_url' => md5($prefix.$tr->find("a",0)->href),
 						    	'status' => 'wait',
 						    ];
 						    $empty = Capsule::table('url_car')
-						    	->where('url',html_entity_decode($prefix.$tr->find("a",0)->href))
+						    	->where('md5_url',md5($prefix.$tr->find("a",0)->href))
 						    	->get()
 						    	->isEmpty();
 						    if($empty)
@@ -151,11 +152,12 @@ class twostep{
 						{
 						    // 存储进去所有的&model
 						    $temp = [
-						    	'url' => html_entity_decode($prefix.$a->href),
+						    	'url' => $prefix.$a->href,
 						    	'status' => 'wait',
+						    	'md5_url' => md5($prefix.$a->href)
 						    ];
 						    $empty = Capsule::table('url_part')
-						    	->where('url',html_entity_decode($prefix.$a->href))
+						    	->where('md5_url',md5($prefix.$a->href))
 						    	->get()
 						    	->isEmpty();
 						    if($empty)
@@ -229,12 +231,12 @@ class twostep{
 						{
 						    // 存储进去所有的part
 						    $temp = [
-						    	'url' => html_entity_decode($prefix.$a->href),
+						    	'url' => $prefix.$a->href,
 						    	'status' => 'wait',
-						    	'md5_url' =>md5($prefix.$a->href)
+						    	'md5_url' => md5($prefix.$a->href)
 						    ];
 						    $empty = Capsule::table('url_pic')
-						    	->where('url',html_entity_decode($prefix.$a->href))
+						    	->where('md5_url', md5($prefix.$a->href))
 						    	->get()
 						    	->isEmpty();
 						    if($empty)

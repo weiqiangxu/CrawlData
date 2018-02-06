@@ -35,3 +35,21 @@
 4.  *多窗口执行指令过程之中可能会出现pdo exception url unique 这是多窗口并发插入导致的，因为加入unque防止数据重复(尽管insert之前isEmpty校验过)，只要最终数据是正确的就可以*
 
 4.  *执行结果：自动创建的数据库 temp_realoem_201801 - rawdata 存储原始数据。*
+
+***
+
+### 如何使用web-partsouq.com：
+
+1.  配置resource/autoload.php的数据库信息。
+
+2.  依次执行1-step.php、2-step.php、3-step.php。
+
+***
+
+### 注意：
+
+1.  *数据来源：[partsouq.com](https://partsouq.com/)*
+
+2.  *每个脚本可以多开窗口采集并支持断点采集，并且请确保每个脚本执行完毕否则出现数据不全*
+
+4.  *执行结果：自动创建的数据库 temp_partsouq_201801 - rawdata 存储原始数据。*
