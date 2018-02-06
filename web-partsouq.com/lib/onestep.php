@@ -90,13 +90,13 @@ class onestep{
 			    // 描述图片地址
 			    $table->text('image')->nullable();
 			    // 配件左侧介绍信息json格式存储 {1:msg1,2:msg2}
-			    $table->longText('detail_json')->nullable();
+			    $table->longText('part_detail')->nullable();
 			    // 页面网址
 			    $table->text('url')->nullable();
 			    // 页面网址md5数值用于防止重复
-			    $table->text('url_md5')->unique();
+			    $table->string('url_md5')->unique();
 			});
-			echo "table url_pic create\r\n";
+			echo "table rawdata create\r\n";
 		}
 	}
 

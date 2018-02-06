@@ -71,44 +71,73 @@ class threestep{
 						// 解析入库
 						$brand = $dom->find(".table-bordered-n tbody",0)->last_child()->find("h4",0)->plaintext;
 						$code =  $dom->find(".table-bordered-n tbody tr",1)->last_child()->plaintext;
-						$name = $dom->find("td[data-title=Name]",0)->outertext;
-						$Destinationregion = $dom->find("td[data-title=Destinationregion]",0)->outertext;
-						$Transmission = $dom->find("td[data-title=Transmission]",0)->outertext;
-						$Series_code = $dom->find("td[data-title=Series_code]",0)->outertext;
-						$Engine = $dom->find("td[data-title=Engine]",0)->outertext;
-						$BodyStyle = $dom->find("td[data-title=BodyStyle]",0)->outertext;
-						$Steering = $dom->find("td[data-title=Steering]",0)->outertext;
-						$Model = $dom->find("td[data-title=Model]",0)->outertext;
-						$Series_description = $dom->find("td[data-title=Series_description]",0)->outertext;
+						$name = $dom->find("td[data-title=Name]",0)->plaintext;
+						$Destinationregion = $dom->find("td[data-title=Destinationregion]",0)->plaintext;
+						$Transmission = $dom->find("td[data-title=Transmission]",0)->plaintext;
+						$Series_code = $dom->find("td[data-title=Series_code]",0)->plaintext;
+						$Engine = $dom->find("td[data-title=Engine]",0)->plaintext;
+						$BodyStyle = $dom->find("td[data-title=BodyStyle]",0)->plaintext;
+						$Steering = $dom->find("td[data-title=Steering]",0)->plaintext;
+						$Model = $dom->find("td[data-title=Model]",0)->plaintext;
+						$Series_description = $dom->find("td[data-title=Series_description]",0)->plaintext;
 						$simple = $dom->find(".col-xs-8 h4",0)->plaintext;
 						// 图片路由
 						$image = $dom->find("img[data-container=zoom_container_0]",0)->src;
-						var_dump($image);die;
+						$image = $prefix.$image;
+						// 获取图片上的点的介绍
+						$pic_des = array();
 
+						$pic_des_key = array();
 
-						// 获取brand页面所有的model
-						foreach($dom->find('.accordion-toggle') as $article)
+						
+						foreach($dom->find('.bottom-block-table th') as $v)
 						{
-						    // 存储进去所有的&model
-						    $temp = [
-						    	'url' => html_entity_decode($prefix.$article->href),
-						    	'status' => 'wait',
-						    ];
-						    $empty = Capsule::table('url_model')
-						    	->where('url',html_entity_decode($prefix.$article->href))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('url_model')->insert($temp);					    	
-						    }
+							$pic_des_key[] = $v->plaintext;
 						}
-			            // 更改SQL语句
-			            Capsule::table('url_brand')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'brand '.$data->id.'.html'."  analyse successful!\r\n";
+
+						foreach($dom->find('.part-search-tr') as $v)
+						{
+							$arr = array();
+							for ($i=0; $i < count($pic_des_key); $i++)
+							{ 
+								$arr[$pic_des_key[$i]] = $v->children($i)->plaintext;
+							}
+							$pic_des[] = $arr;
+						}
+						$part_detail = serialize($pic_des);
+						// 最后拼接数组入库
+						$temp = array(
+							'simple' => $simple,
+							'brand' => $brand,
+							'code' => $code,
+							'name' => $name,
+							'destination' => $Destinationregion,
+							'transmission' => $Transmission,
+							'series_code' => $Series_code,
+							'engine' => $Engine,
+							'bodystyle' => $BodyStyle,
+							'steering' => $Steering,
+							'model' => $Model,
+							'series_description' => $Series_description,
+							'image' => $image,
+							'part_detail' => $part_detail,
+							'url' => $data->url,
+							'url_md5' => md5($data->url)
+						);
+						$empty = Capsule::table('rawdata')
+					    	->where('url_md5',md5($data->url))
+					    	->get()
+					    	->isEmpty();
+					    if($empty)
+					    {
+						    Capsule::table('rawdata')->insert($temp);					    	
+				            // 更改SQL语句
+				            Capsule::table('url_pic')
+						            ->where('id', $data->id)
+						            ->update(['status' =>'readed']);
+						    // 命令行执行时候不需要经过apache直接输出在窗口
+				            echo 'url_pic '.$data->id.'.html'."  analyse successful!\r\n";
+					    }
 					}
 		    	}
 		    }

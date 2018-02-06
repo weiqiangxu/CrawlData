@@ -10,7 +10,7 @@ require_once('./lib/threestep.php');
 require_once('./lib/download.php');
 
 // 获取所有的pic链接页面
-// threestep::download();
+threestep::download();
 
 // 获取所有的下载好的pic页面
 threestep::analyse();
