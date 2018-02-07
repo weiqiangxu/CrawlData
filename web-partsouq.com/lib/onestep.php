@@ -166,6 +166,7 @@ class onestep{
 		    	if(!file_exists($file))
 		    	{
 		    		$mineload = new mineload();
+		    		sleep(1);
 		    		$res = $mineload->curl_https($data->url);
 		    		if($res['info']['http_code']== 200 )
 		    		{
