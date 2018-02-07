@@ -7,6 +7,8 @@ class mineload{
 	*/  
 	public function curl_https($url)
 	{
+		// 采集到的url会被pdo入库时候转义为html字符现在转义回来防止网站无法读取到任何的get参数
+		$url = html_entity_decode($url);
 		// 从文件中读取数据到PHP变量
 		$json_string = file_get_contents(__DIR__.'\ip.json');
 
