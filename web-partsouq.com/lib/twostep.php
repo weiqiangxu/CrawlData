@@ -36,7 +36,7 @@ class twostep{
 		    	{
 		    		$client = new Client();
 		    		// 注册异步请求
-					$client->getAsync($data->url,['verify' => false])->then(
+					$client->getAsync(html_entity_decode($data->url),['verify' => false])->then(
 					    function (ResponseInterface $res) use ($file, $data)
 					    {
 							if($res->getStatusCode()== 200)
@@ -129,7 +129,7 @@ class twostep{
 		    	{
 		    		$client = new Client();
 		    		// 注册异步请求
-					$client->getAsync($data->url,['verify' => false])->then(
+					$client->getAsync(html_entity_decode($data->url),['verify' => false])->then(
 					    function (ResponseInterface $res) use ($file, $data)
 					    {
 							if($res->getStatusCode()== 200)
@@ -218,7 +218,7 @@ class twostep{
 		    	{
 		    		$client = new Client();
 		    		// 注册异步请求
-					$client->getAsync($data->url,['verify' => false])->then(
+					$client->getAsync(html_entity_decode($data->url),['verify' => false])->then(
 					    function (ResponseInterface $res) use ($file, $data)
 					    {
 							if($res->getStatusCode()== 200)
