@@ -1,0 +1,54 @@
+<?php
+// 引入数据库层
+use Illuminate\Database\Capsule\Manager as Capsule;
+// 解析HTML为DOM工具
+use Sunra\PhpSimple\HtmlDomParser;
+// 多进程下载器
+use Huluo\Extend\Gather;
+
+use Illuminate\Database\Schema\Blueprint;
+
+use GuzzleHttp\Client;
+use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Request;
+
+class guzzle{
+
+	public function down($step,$data)
+	{
+		// 页面文件名
+    	$file = PROJECT_APP_DOWN.$step.'/'.$data->id.'.html';
+    	// 判定是否已经存在且合法
+    	if(!file_exists($file))
+    	{
+    		$client = new Client();
+    		// 注册异步请求
+			$client->getAsync(html_entity_decode($data->url),['verify' => false,'proxy'=>'https://110.82.102.109:34098'])->then(
+				// 成功获取页面回调
+			    function (ResponseInterface $res) use ($step,$file,$data)
+			    {
+					if($res->getStatusCode()== 200)
+		    		{
+		    			// 保存文件
+			            file_put_contents($file,$res->getBody());
+			            // 命令行执行时候不需要经过apache直接输出在窗口
+			            echo $step.' '.$data->id.'.html'." download successful!\r\n";
+		    		}
+		    		if(file_exists($file))
+			    	{
+			            // 更改SQL语句
+			            Capsule::table($step)
+					            ->where('id', $data->id)
+					            ->update(['status' =>'completed']);
+			    	}
+			    },
+			    // 请求失败回调
+			    function (RequestException $e) {
+			        echo $e->getMessage() . "\r\n";
+			        echo $e->getRequest()->getMethod(). "\r\n";
+			    }
+			)->wait();
+    	}
+	}
+}

@@ -13,8 +13,6 @@ use GuzzleHttp\Client;
   * @copyright 2018/01/29
   */
 class onestep{
-
-
 	// 初始化所有数据表
 	public static function initable()
 	{
@@ -102,7 +100,6 @@ class onestep{
 			echo "table rawdata create\r\n";
 		}
 	}
-
 	// // 获取所有如下链接=>url_brand
 	// https://partsouq.com/en/catalog/genuine/locate?c=BMW
 	public static function brand()
@@ -110,10 +107,8 @@ class onestep{
 		// 解析首页
 		$prefix = 'https://partsouq.com/catalog/genuine';
 		$prefix_catalog ='https://partsouq.com';
-
 		$client = new Client();
 		$response = $client->get($prefix,['verify' => false]);
-
 		// 创建dom对象
 		if($dom = HtmlDomParser::str_get_html($response->getBody()))
 		{
@@ -148,7 +143,6 @@ class onestep{
 			exit('net error!');
 		}
 	}
-
 	// 获取所有如下链接=>url_model
 	// https://partsouq.com/en/catalog/genuine/pick?c=Lexus&model=CT200H&ssd=%24Wl05BAc%24
 	public static function model()
@@ -160,37 +154,8 @@ class onestep{
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
-		    	// 页面文件名
-		    	$file = PROJECT_APP_DOWN.'url_brand/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
-		    	if(!file_exists($file))
-		    	{
-		    		$client = new Client();
-		    		// 注册异步请求
-					$client->getAsync(html_entity_decode($data->url),['verify' => false])->then(
-					    function (ResponseInterface $res) use ($file, $data)
-					    {
-							if($res->getStatusCode()== 200)
-				    		{
-				    			// 保存文件
-					            file_put_contents($file,$res->getBody());
-					            // 命令行执行时候不需要经过apache直接输出在窗口
-					            echo 'url_brand '.$data->id.'.html'." download successful!\r\n";
-				    		}
-				    		if(file_exists($file))
-					    	{
-					            // 更改SQL语句
-					            Capsule::table('url_brand')
-							            ->where('id', $data->id)
-							            ->update(['status' =>'completed']);
-					    	}
-					    },
-					    function (RequestException $e) {
-					        echo $e->getMessage() . "\r\n";
-					        echo $e->getRequest()->getMethod(). "\r\n";
-					    }
-					)->wait();
-		    	}
+				$guzzle = new guzzle();
+	    		$guzzle->down('url_brand',$data);
 		    }
 		});
 		// 现在解析brand html获取所有的model的url
