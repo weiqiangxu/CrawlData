@@ -5,9 +5,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Sunra\PhpSimple\HtmlDomParser;
 // 多进程下载器
 use Huluo\Extend\Gather;
-
 use Illuminate\Database\Schema\Blueprint;
-
+use GuzzleHttp\Client;
 /**
   * 检测需要下载的批次并下载相应批次的列表页
   * @author xu
@@ -111,11 +110,12 @@ class onestep{
 		// 解析首页
 		$prefix = 'https://partsouq.com/catalog/genuine';
 		$prefix_catalog ='https://partsouq.com';
-		$mineload = new mineload();
-		$res = $mineload->curl_https($prefix);
+
+		$client = new Client();
+		$response = $client->get($prefix,['verify' => false]);
 
 		// 创建dom对象
-		if($dom = HtmlDomParser::str_get_html($res['html']))
+		if($dom = HtmlDomParser::str_get_html($response->getBody()))
 		{
 			foreach($dom->find('tbody h4') as $article)
 			{
@@ -165,26 +165,32 @@ class onestep{
 		    	// 判定是否已经存在且合法
 		    	if(!file_exists($file))
 		    	{
-		    		$mineload = new mineload();
-		    		sleep(1);
-		    		$res = $mineload->curl_https($data->url);
-		    		if($res['info']['http_code']== 200 )
-		    		{
-		    			// 保存文件
-			            file_put_contents($file,$res['html']);
-			            // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'brand '.$data->id.'.html'." download successful!\r\n";
-		    		}
+		    		$client = new Client();
+		    		// 注册异步请求
+					$client->getAsync(html_entity_decode($data->url),['verify' => false])->then(
+					    function (ResponseInterface $res) use ($file, $data)
+					    {
+							if($res->getStatusCode()== 200)
+				    		{
+				    			// 保存文件
+					            file_put_contents($file,$res->getBody());
+					            // 命令行执行时候不需要经过apache直接输出在窗口
+					            echo 'url_brand '.$data->id.'.html'." download successful!\r\n";
+				    		}
+				    		if(file_exists($file))
+					    	{
+					            // 更改SQL语句
+					            Capsule::table('url_brand')
+							            ->where('id', $data->id)
+							            ->update(['status' =>'completed']);
+					    	}
+					    },
+					    function (RequestException $e) {
+					        echo $e->getMessage() . "\r\n";
+					        echo $e->getRequest()->getMethod(). "\r\n";
+					    }
+					)->wait();
 		    	}
-
-		    	if(file_exists($file))
-		    	{
-		            // 更改SQL语句
-		            Capsule::table('url_brand')
-				            ->where('id', $data->id)
-				            ->update(['status' =>'completed']);
-		    	}
-
 		    }
 		});
 		// 现在解析brand html获取所有的model的url

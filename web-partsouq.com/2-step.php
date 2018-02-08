@@ -6,8 +6,6 @@ require_once('../resources/autoload.php');
 require_once('./lib/config.php');
 // 加载自己项目资源库
 require_once('./lib/twostep.php');
-// 自己的下载类
-require_once('./lib/download.php');
 
 // 获取所有的汽车页面路由
 twostep::car();

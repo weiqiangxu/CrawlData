@@ -198,6 +198,34 @@ class twostep{
 		    	}
 		    }
 		});
+
+
+		// 将所有part默认页面移动过去
+		Capsule::table('url_car')->where('status','readed')->orderBy('id')->chunk(20,function($datas){
+			foreach ($datas as $data)
+			{
+				$temp = [
+			    	'url' => $data->url,
+			    	'status' => 'wait',
+			    	'md5_url' => md5($data->url)
+			    ];
+			    $empty = Capsule::table('url_part')
+			    	->where('md5_url',md5($data->url))
+			    	->get()
+			    	->isEmpty();
+			    if($empty)
+			    {
+				    Capsule::table('url_part')->insert($temp);
+			    	echo "url_car ".$data->id." moved!\r\n";
+			    	// 更改SQL语句
+		            Capsule::table('url_car')
+				            ->where('id', $data->id)
+				            ->update(['status' =>'moved']);					    	
+			    }
+			}
+		});
+
+
 	}
 
 
