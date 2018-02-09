@@ -145,7 +145,7 @@ class onestep{
 		// 创建dom对象
 		$dom = HtmlDomParser::str_get_html($temp);
 		// 获取最大批次 /notice_301
-		$maxpici  = $dom->find("#noticeList",0)->first_child()->href;
+		$maxpici  = $dom->find(".lotList",0)->first_child()->href;
 		// 正匹配获取数据
 		preg_match('/notice_(\d+)/', $maxpici, $matche);
 		// 最大批次号码为
