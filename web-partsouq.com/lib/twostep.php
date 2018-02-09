@@ -15,212 +15,95 @@ use Illuminate\Database\Schema\Blueprint;
 class twostep{
 
 	// 车系=》车
-	public static function car()
+	public static function market()
 	{
-		// 下载所有的model页面
-		Capsule::table('url_model')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
+		// 下载所有的market页面
+		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
 			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'url_model', 0777, true);
+			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
 		    	$guzzle = new guzzle();
-		    	$guzzle->down('url_model',$data);
+		    	$guzzle->down('url_market',$data);
 		    }
 		});
 
 		// 获取所有的车连接
-		Capsule::table('url_model')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
 		    	// 解析页面
 		    	// 保存文件名
-		    	$file = PROJECT_APP_DOWN.'url_model/'.$data->id.'.html';
+		    	$file = PROJECT_APP_DOWN.'url_market/'.$data->id.'.html';
 		    	// 判定是否已经存在且合法
 		    	if (file_exists($file))
 		    	{
 		    		$temp = file_get_contents($file);
 		    		if($dom = HtmlDomParser::str_get_html($temp))
 					{
-						// 获取brand页面所有的model
-						foreach($dom->find('.search-result-vin tr') as $tr)
+						// 是否有筛选框
+						if($dom->find("#model-filter-form",0))
 						{
-							if(!$tr->find("a",0))
-							{
-								continue;
+							// 有筛选框
+							// 校验是否有 101 shown字眼，如果有的话将该页面标记为last
+							if($dom->find("#content .container h3",0))
+							{	
+								// 获取数字
+								preg_match("/\d+/", $dom->find("#content .container h3",0)->innertext,$num);
+								if(current($num) < 100 && current($num)>0)
+								{
+									// 此时已经是最终页面设置为last
+									Capsule::table('url_market')
+							            ->where('id', $data->id)
+							            ->update(['status' => 'last']);
+							        // 退出当前循环
+							        continue;
+								}
 							}
-						    // 存储进去所有的&url_model
-						    $temp = [
-						    	'url' => $prefix.$tr->find("a",0)->href,
-						    	'md5_url' => md5($prefix.$tr->find("a",0)->href),
-						    	'status' => 'wait',
-						    ];
-						    $empty = Capsule::table('url_car')
-						    	->where('md5_url',md5($prefix.$tr->find("a",0)->href))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('url_car')->insert($temp);					    	
-						    }
+							// 此时还不是最终链接，只能拼接下一级的下拉框获取新的url
+							// 获取第一个下拉框选项拼接url的所有结果集 
+							$name = $dom->find('#model-filter-form .cat_flt_',$data->level)->name;
+							$temp = array();
+							foreach ($dom->find('#model-filter-form .cat_flt_',$data->level)->find("option") as $value)
+							{
+								if($value->value!="")
+								{
+									$temp[] = [
+												'status' => 'wait' ,
+												'url' => $data->url.'&'.$name.'='.$value->value,
+												'md5_url' => md5($data->url.'&'.$name.'='.$value->value),
+												'level' => $data->level+1
+											];
+								}
+							}
+							// 插入所有数据
+							Capsule::table('url_market')->insert($temp);
+							// 删除原来连接
+							Capsule::table('url_market')->where('id', '=', $data->id)->delete();
+							// 如果已经解析需要把这个文件删除
+							unlink($file);
 						}
-			            // 更改SQL语句
-			            Capsule::table('url_model')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'url_model '.$data->id.'.html'."  analyse successful!\r\n";
-					}
-		    	}
-		    }
-		});
-	}
-
-	// 车 =》 零件
-	public static function part()
-	{
-		// 下载所有的model页面
-		Capsule::table('url_car')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'url_car', 0777, true);
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-	    		$guzzle = new guzzle();
-	    		$guzzle->down('url_car',$data);
-		    }
-		});
-
-		// 获取所有的车连接
-		Capsule::table('url_car')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
-			$prefix ='https://partsouq.com';
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	// 解析页面
-		    	$file = PROJECT_APP_DOWN.'url_car/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
-		    	if (file_exists($file))
-		    	{
-		    		$temp = file_get_contents($file);
-		    		if($dom = HtmlDomParser::str_get_html($temp))
-					{
-						// 获取brand页面所有的model
-						foreach($dom->find('.list-unstyled a') as $a)
+						else
 						{
-						    // 存储进去所有的&model
-						    $temp = [
-						    	'url' => $prefix.$a->href,
-						    	'status' => 'wait',
-						    	'md5_url' => md5($prefix.$a->href)
-						    ];
-						    $empty = Capsule::table('url_part')
-						    	->where('md5_url',md5($prefix.$a->href))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('url_part')->insert($temp);					    	
-						    }
-						}
-			            // 更改SQL语句
-			            Capsule::table('url_car')
+							// 没有下拉选项不做处理，此刻已经显示所有的car链接
+							// 将状态设置为last
+							Capsule::table('url_market')
 					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'url_car '.$data->id.'.html'."  analyse successful!\r\n";
+					            ->update(['status' => 'last']);
+						}
 					}
 		    	}
 		    }
 		});
 
+		// 获取需要下载的页面
+		$wait = Capsule::table('url_market')
+            ->where('status', 'wait')
+           	->count();
+        echo "still have item need to download ,sum : ".$wait."\r\n";
 
-		// 将所有part默认页面移动过去
-		Capsule::table('url_car')->where('status','readed')->orderBy('id')->chunk(20,function($datas){
-			foreach ($datas as $data)
-			{
-				$temp = [
-			    	'url' => $data->url,
-			    	'status' => 'wait',
-			    	'md5_url' => md5($data->url)
-			    ];
-			    $empty = Capsule::table('url_part')
-			    	->where('md5_url',md5($data->url))
-			    	->get()
-			    	->isEmpty();
-			    if($empty)
-			    {
-				    Capsule::table('url_part')->insert($temp);
-			    	echo "url_car ".$data->id." moved!\r\n";
-			    	// 更改SQL语句
-		            Capsule::table('url_car')
-				            ->where('id', $data->id)
-				            ->update(['status' =>'moved']);					    	
-			    }
-			}
-		});
-
-
-	}
-
-
-	// 零件 =》 图片详情
-	public static function pic()
-	{
-		// 下载所有的part页面
-		Capsule::table('url_part')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'url_part', 0777, true);
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-	    		$guzzle = new guzzle();
-	    		$guzzle->down('url_part',$data);
-		    }
-		});
-		// 获取所有的图片连接（最后一级别啦）
-		Capsule::table('url_part')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
-			$prefix ='https://partsouq.com';
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	// 解析页面
-		    	$file = PROJECT_APP_DOWN.'url_part/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
-		    	if (file_exists($file))
-		    	{
-		    		$temp = file_get_contents($file);
-		    		if($dom = HtmlDomParser::str_get_html($temp))
-					{
-						// 获取pic详情页url
-						foreach($dom->find('.caption a') as $a)
-						{
-						    // 存储进去所有的part
-						    $temp = [
-						    	'url' => $prefix.$a->href,
-						    	'status' => 'wait',
-						    	'md5_url' => md5($prefix.$a->href)
-						    ];
-						    $empty = Capsule::table('url_pic')
-						    	->where('md5_url', md5($prefix.$a->href))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('url_pic')->insert($temp);					    	
-						    }
-						}
-			            // 更改SQL语句
-			            Capsule::table('url_part')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'url_part '.$data->id.'.html'."  analyse successful!\r\n";
-					}
-		    	}
-		    }
-		});
 	}
 }

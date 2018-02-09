@@ -5,11 +5,11 @@ require_once('../resources/autoload.php');
 // 初始化数据库配置
 require_once('./lib/config.php');
 // 加载自己项目资源库
-require_once('./lib/onestep.php');
+require_once('./lib/fourstep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
-// 初始化所有表格
-onestep::initable();
+// 获取所有的pic链接页面
+fourstep::download();
 
-// 获取所有的品牌+fifter链接
-onestep::market();
+// 获取所有的下载好的pic页面
+fourstep::analyse();

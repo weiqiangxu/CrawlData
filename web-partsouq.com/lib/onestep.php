@@ -16,27 +16,17 @@ class onestep{
 	// 初始化所有数据表
 	public static function initable()
 	{
-		// url_brand表
-		if(!Capsule::schema()->hasTable('url_brand'))
+		// url_market表
+		if(!Capsule::schema()->hasTable('url_market'))
 		{
-			Capsule::schema()->create('url_brand', function (Blueprint $table){
+			Capsule::schema()->create('url_market', function (Blueprint $table){
 			    $table->increments('id');
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
+			    $table->string('level')->nullable()->default(0);
 			    $table->string('status')->nullable();
 			});
-			echo "table url_brand create\r\n";
-		}
-		// url_model表
-		if(!Capsule::schema()->hasTable('url_model'))
-		{
-			Capsule::schema()->create('url_model', function (Blueprint $table){
-			    $table->increments('id');
-			    $table->string('md5_url')->unique();
-			    $table->text('url')->nullable();
-			    $table->string('status')->nullable();
-			});
-			echo "table url_model create\r\n";
+			echo "table url_market create\r\n";
 		}
 		// url_car表
 		if(!Capsule::schema()->hasTable('url_car'))
@@ -88,6 +78,12 @@ class onestep{
 			    $table->string('steering')->nullable();
 			    $table->string('model')->nullable();
 			    $table->string('series_description')->nullable();
+
+			    $table->string('Grade')->nullable();
+			    $table->string('Options')->nullable();
+			    $table->string('Modelyearfrom')->nullable();
+
+
 			    // 描述图片地址
 			    $table->text('image')->nullable();
 			    // 配件左侧介绍信息json格式存储 {1:msg1,2:msg2}
@@ -100,15 +96,14 @@ class onestep{
 			echo "table rawdata create\r\n";
 		}
 	}
-	// // 获取所有如下链接=>url_brand
+	// // 获取所有如下链接=>url_market
 	// https://partsouq.com/en/catalog/genuine/locate?c=BMW
-	public static function brand()
+	public static function market()
 	{
 		// 解析首页
-		$prefix = 'https://partsouq.com/catalog/genuine';
-		$prefix_catalog ='https://partsouq.com';
+		$prefix = 'https://partsouq.com/en/catalog/genuine/filter?c=';
 		$client = new Client();
-		$response = $client->get($prefix,['verify' => false]);
+		$response = $client->get('https://partsouq.com/catalog/genuine',['verify' => false]);
 		// 创建dom对象
 		if($dom = HtmlDomParser::str_get_html($response->getBody()))
 		{
@@ -119,22 +114,38 @@ class onestep{
 					// 排除<h4>Login</h4>按钮
 					continue;
 				}
+				// 加限定只要Nissan的数据
+				if(!strpos($article->find("a",0)->href, 'Nissan'))
+				{
+					continue;
+				}
+
+				// 获取当前品牌
+				$href = explode("?c=", $article->find("a",0)->href);
+				if(is_array($href))
+				{
+					$href = end($href);
+				}
+				else
+				{
+					continue;
+				}
 			    // 存储进去所有的&body
 			    $temp = [
-			    	'url' => $prefix_catalog.$article->find("a",0)->href,
+			    	'url' => $prefix.$href,
 			    	'status' => 'wait',
-			    	'md5_url' => md5($prefix_catalog.$article->find("a",0)->href)
+			    	'md5_url' => md5($prefix.$href)
 			    ];
-			    $empty = Capsule::table('url_brand')
-			    	->where('md5_url',md5($prefix_catalog.$article->find("a",0)->href))
+			    $empty = Capsule::table('url_market')
+			    	->where('md5_url',md5($prefix.$href))
 			    	->get()
 			    	->isEmpty();
 			    if($empty)
 			    {
-				    Capsule::table('url_brand')->insert($temp);					    	
+				    Capsule::table('url_market')->insert($temp);					    	
 			    }
 			}
-			echo 'url_brand analyse completed!'."\r\n";
+			echo 'url_market analyse completed!'."\r\n";
 			// 清理内存防止内存泄漏
 			$dom-> clear(); 
 		}
@@ -143,63 +154,6 @@ class onestep{
 			exit('net error!');
 		}
 	}
-	// 获取所有如下链接=>url_model
-	// https://partsouq.com/en/catalog/genuine/pick?c=Lexus&model=CT200H&ssd=%24Wl05BAc%24
-	public static function model()
-	{
-		// 下载所有的brand页面
-		Capsule::table('url_brand')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'url_brand', 0777, true);
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-				$guzzle = new guzzle();
-	    		$guzzle->down('url_brand',$data);
-		    }
-		});
-		// 现在解析brand html获取所有的model的url
-		Capsule::table('url_brand')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
-			$prefix = 'https://partsouq.com';
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	// 解析页面
-		    	// 保存文件名
-		    	$file = PROJECT_APP_DOWN.'url_brand/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
-		    	if (file_exists($file))
-		    	{
-		    		$temp = file_get_contents($file);
-		    		if($dom = HtmlDomParser::str_get_html($temp))
-					{
-						// 获取brand页面所有的model
-						foreach($dom->find('.accordion-toggle') as $article)
-						{
-						    // 存储进去所有的&model
-						    $temp = [
-						    	'url' => $prefix.$article->href,
-						    	'status' => 'wait',
-						    	'md5_url' => md5($prefix.$article->href)
-						    ];
-						    $empty = Capsule::table('url_model')
-						    	->where('md5_url',md5($prefix.$article->href))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('url_model')->insert($temp);					    	
-						    }
-						}
-			            // 更改SQL语句
-			            Capsule::table('url_brand')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'brand '.$data->id.'.html'."  analyse successful!\r\n";
-					}
-		    	}
-		    }
-		});
-	}
+	
+
 }
