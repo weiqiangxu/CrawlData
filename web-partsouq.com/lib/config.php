@@ -1,4 +1,5 @@
 <?php
+
 // 数据库操作对象
 use Illuminate\Database\Capsule\Manager as Capsule;
 

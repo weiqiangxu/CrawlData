@@ -26,7 +26,7 @@ class onestep{
 			    $table->string('level')->nullable()->default(0);
 			    $table->string('status')->nullable();
 			});
-			echo "table url_market create\r\n";
+			echo "table url_market create".PHP_EOL;
 		}
 		// url_car表
 		if(!Capsule::schema()->hasTable('url_car'))
@@ -37,7 +37,7 @@ class onestep{
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
-			echo "table url_car create\r\n";
+			echo "table url_car create".PHP_EOL;
 		}
 		// url_part
 		if(!Capsule::schema()->hasTable('url_part'))
@@ -48,7 +48,7 @@ class onestep{
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
-			echo "table url_part create\r\n";
+			echo "table url_part create".PHP_EOL;
 		}
 		// url_pic
 		if(!Capsule::schema()->hasTable('url_pic'))
@@ -59,7 +59,7 @@ class onestep{
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
 			});
-			echo "table url_pic create\r\n";
+			echo "table url_pic create".PHP_EOL;
 		}
 		// rawdata
 		if(!Capsule::schema()->hasTable('rawdata'))
@@ -93,7 +93,7 @@ class onestep{
 			    // 页面网址md5数值用于防止重复
 			    $table->string('url_md5')->unique();
 			});
-			echo "table rawdata create\r\n";
+			echo "table rawdata create".PHP_EOL;
 		}
 	}
 	// // 获取所有如下链接=>url_market
@@ -145,7 +145,7 @@ class onestep{
 				    Capsule::table('url_market')->insert($temp);					    	
 			    }
 			}
-			echo 'url_market analyse completed!'."\r\n";
+			echo 'url_market analyse completed!'.PHP_EOL;
 			// 清理内存防止内存泄漏
 			$dom-> clear(); 
 		}

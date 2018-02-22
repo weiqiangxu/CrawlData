@@ -8,8 +8,6 @@ require_once('./lib/config.php');
 require_once('./lib/fourstep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
-// 获取所有的pic链接页面
-fourstep::download();
 
-// 获取所有的下载好的pic页面
-fourstep::analyse();
+// 获取所有的汽车左侧零件系列 url
+fourstep::part();

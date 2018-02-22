@@ -8,6 +8,7 @@ require_once('./lib/config.php');
 require_once('./lib/onestep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
+
 // 初始化所有表格
 onestep::initable();
 
