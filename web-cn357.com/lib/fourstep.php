@@ -72,15 +72,11 @@ class fourstep{
 							'排量' => 'pl',
 							'功率' => 'gl'
 						);
-			// 日志操作类
-			$LibFile = new LibFile();
-			// 记录第三步骤日志
-			$logFile = PROJECT_APP_DOWN.'fourstep.txt';
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
 		    	// 保存文件名
-		    	$file = PROJECT_APP_DOWN.'url_detail/'.$data->file_path.'/'.$data->id.'.html';
+		    	$file = PROJECT_APP_DOWN.'url_detail/'.$data->id.'.html';
 		    	// 判定是否已经存在且合法
 		    	if (is_file($file))
 		    	{
@@ -143,28 +139,26 @@ class fourstep{
 							$newTemp[$key] = $value; 
 						}
 						// 加入批次路径
-						$newTemp['pclj'] = $data->file_path;
+						$newTemp['pclj'] = $data->route_url;
 						// 加入当前页面url以供随机查询校验
-						$newTemp['ymdz'] = $data->company_url;
+						$newTemp['ymdz'] = $data->url;
 						// 插入记录
 						Capsule::table('raw_data')->insert($newTemp);
 						// 清理内存防止内存泄漏
 						$dom->clear();
 						// 记录成功
-					    $LibFile->WriteData($logFile, 4, $data->file_path.'/'.$data->id.'.html'.'解析完成！');
-						echo $data->file_path.'/'.$data->id.'.html'." analyse ok!\r\n";
+						echo 'url_detail '.$data->id.'.html'." analyse ok!".PHP_EOL;
 					}
 					else
 					{
 						// 记录错误
-					    $LibFile->WriteData($logFile, 4, $data->file_path.'/'.$data->id.'.html'.'文件不存在！');
-						echo $data->file_path.'/'.$data->id.'.html'." file no exit!\r\n";
+						echo 'url_detail '.$data->id.'.html'." file no exit!".PHP_EOL;
 					}
 			    }
 			    // 更改SQL语句
 				Capsule::table('url_detail')
 					->where('id', $data->id)
-					->update(['status' =>'read']);
+					->update(['status' =>'readed']);
 		    }
 		});
 	}

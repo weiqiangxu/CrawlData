@@ -6,10 +6,7 @@ require_once('../resources/autoload.php');
 require_once('./lib/config.php');
 // 加载自己项目资源库
 require_once('./lib/twostep.php');
-// 路径处理类
-require_once('./lib/LibDir.php');
-// 文件处理类
-require_once('./lib/LibFile.php');
-
+// 封装下载类
+require_once('./lib/guzzle.php');
 // 开始执行
 twostep::initdetail();

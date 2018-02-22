@@ -6,11 +6,8 @@ require_once('../resources/autoload.php');
 require_once('./lib/config.php');
 // 加载自己项目资源库
 require_once('./lib/fourstep.php');
-// 路径处理类
-require_once('./lib/LibDir.php');
-// 文件处理类
-require_once('./lib/LibFile.php');
-
+// 封装下载类
+require_once('./lib/guzzle.php');
 
 // 引入数据库层
 use Illuminate\Database\Capsule\Manager as Capsule;

@@ -247,10 +247,7 @@ class fivestep{
 			$pinyin = new Pinyin();
 			// 最终入库的数据库连接对象
 			$finalDatabase = Capsule::connection('model_jdcswww');
-			// 日志操作类
-			$LibFile = new LibFile();
-			// 记录第三步骤日志
-			$logFile = PROJECT_APP_DOWN.'fivestep.txt';
+
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
@@ -796,8 +793,7 @@ class fivestep{
 	            }
 	            // 更改原始数据是否status
 	            Capsule::table('raw_data')->where('id',$data->id)->update(['status' =>'readed']);
-	            echo $data->id." analyse completed! \r\n";
-	            $LibFile->WriteData($logFile, 4, $data->id.'数据整理完毕！');
+	            echo $data->id." analyse completed!".PHP_EOL;
 		    }
 		});
 	}

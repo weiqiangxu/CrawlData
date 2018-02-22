@@ -6,10 +6,17 @@ require_once('../resources/autoload.php');
 require_once('./lib/config.php');
 // 加载自己项目资源库
 require_once('./lib/onestep.php');
-// 路径处理类
-require_once('./lib/LibDir.php');
-// 文件处理类
-require_once('./lib/LibFile.php');
+// 封装下载类
+require_once('./lib/guzzle.php');
 
-// 依据批次号进行判定是否更新数据
+// 初始化表
+onestep::initable();
+
+// 录入需要更新的
 onestep::judgeupdate();
+
+// 根据最大页码初始化列表页
+onestep::initlist();
+
+// 下载列表页
+onestep::loadList();
