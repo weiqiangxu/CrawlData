@@ -83,9 +83,7 @@ class guzzle{
 		    },
 		    'rejected' => function ($reason, $index) {
 		        // this is delivered each failed request
-		        $this->error("rejected" );
-                $this->error("rejected reason: " . $reason );
-                $this->countedAndCheckEnded();
+		        echo "rejected reason: " . $reason.PHP_EOL;
 		    },
 		]);
 

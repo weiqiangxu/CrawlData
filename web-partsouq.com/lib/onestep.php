@@ -95,6 +95,33 @@ class onestep{
 			});
 			echo "table rawdata create".PHP_EOL;
 		}
+
+		// carinfo
+		if(!Capsule::schema()->hasTable('carinfo'))
+		{
+			Capsule::schema()->create('carinfo', function (Blueprint $table){
+			    $table->increments('id');
+			    $table->string('brand')->nullable();
+			    $table->string('catalog')->nullable();
+			    $table->string('name')->nullable();
+			    $table->string('market')->nullable();
+			    $table->string('description')->nullable();
+			    $table->string('vehicleClass')->nullable();
+			    $table->string('model')->nullable();
+			    $table->text('aggregates')->nullable();
+
+			    $table->string('Modelyearto')->nullable();
+			    $table->string('Transmission')->nullable();
+			    $table->text('Engine')->nullable();
+
+				$table->string('Grade')->nullable();
+			    $table->string('BodyStyle')->nullable();
+			    $table->text('Modelyearfrom')->nullable();
+
+			});
+			echo "table carinfo create".PHP_EOL;
+		}
+
 	}
 	// // 获取所有如下链接=>url_market
 	// https://partsouq.com/en/catalog/genuine/locate?c=BMW

@@ -28,11 +28,6 @@ class twostep{
 		    	$guzzle = new guzzle();
 		    	$guzzle->down('url_market',$data);
 		    }
-
-			// 并发20条curl异步请求
-			// $guzzle = new guzzle();
-		 	// $guzzle->poolRequest('url_market',$datas);
-
 		});
 
 		// 获取所有的车连接
@@ -87,10 +82,10 @@ class twostep{
 							}
 							// 插入所有数据
 							Capsule::table('url_market')->insert($temp);
-							// 删除原来连接
-							Capsule::table('url_market')->where('id', '=', $data->id)->delete();
-							// 如果已经解析需要把这个文件删除
-							unlink($file);
+							// 标记为失效页面
+							Capsule::table('url_market')
+					            ->where('id', $data->id)
+					            ->update(['status' => 'Invalid']);
 						}
 						else
 						{
