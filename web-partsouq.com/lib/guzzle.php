@@ -126,17 +126,18 @@ class guzzle{
 		       	
 			    if(strpos($reason->getMessage(), 'Failed to connect to'))
 			    {
+
 		       		// 如果是IP无法连接就去除当前代理IP
-			    	if($key != 'none')
-			    	{
-				    	$data = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
-				    	unset($data['msg'][$key]);
-				    	file_put_contents(__DIR__.'\ip.json', json_encode($data));
-				    	echo "del one ip port".PHP_EOL;
+			    	if($key == 'none' && $key!=0)
+			    	{				    	
+			    		echo 'ip has been deny!'.PHP_EOL;
 			    	}
 			    	else
 			    	{
-			    		echo 'ip has been deny!'.PHP_EOL;
+			    		$data = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
+				    	unset($data['msg'][$key]);
+				    	file_put_contents(__DIR__.'\ip.json', json_encode($data));
+				    	echo "del one ip port".PHP_EOL;
 			    	}
 			    }
 			    else
