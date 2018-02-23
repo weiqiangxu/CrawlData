@@ -46,9 +46,9 @@ class fourstep{
 						{
 						    // 存储进去所有的&model
 						    $temp = [
-						    	'url' => html_entity_decode($prefix.$a->href),
+						    	'url' => $prefix.$a->href,
 						    	'status' => 'wait',
-						    	'md5_url' => md5(html_entity_decode($prefix.$a->href)),
+						    	'md5_url' => md5($prefix.$a->href),
 						    	'car_id' => $data->id
 						    ];
 						    $empty = Capsule::table('url_part')
@@ -77,9 +77,9 @@ class fourstep{
 			foreach ($datas as $data)
 			{
 				$temp = [
-			    	'url' => html_entity_decode($data->url),
+			    	'url' => $data->url,
 			    	'status' => 'wait',
-			    	'md5_url' => md5(html_entity_decode($data->url)),
+			    	'md5_url' => md5($data->url),
 			    	'car_id' => $data->id
 			    ];
 			    $empty = Capsule::table('url_part')

@@ -93,13 +93,13 @@ class sevenstep{
 							'name' => $name,
 							'image' => $image,
 							'part_detail' => $part_detail,
-							'url' => html_entity_decode($data->url),
-							'url_md5' => md5(html_entity_decode($data->url)),							
+							'url' => $data->url,
+							'url_md5' => md5($data->url),							
 							'car_id' => $data->car_id
 						);
 
 						$empty = Capsule::table('carparts')
-					    	->where('url_md5',md5(html_entity_decode($data->url)))
+					    	->where('url_md5',md5($data->url))
 					    	->get()
 					    	->isEmpty();
 					    if($empty)

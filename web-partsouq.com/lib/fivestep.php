@@ -48,9 +48,9 @@ class fivestep{
 						{
 						    // 存储进去所有的part
 						    $temp = [
-						    	'url' => html_entity_decode($prefix.$a->href),
+						    	'url' => $prefix.$a->href,
 						    	'status' => 'wait',
-						    	'md5_url' => md5(html_entity_decode($prefix.$a->href)),
+						    	'md5_url' => md5($prefix.$a->href),
 						    	'car_id' => $data->car_id
 						    ];
 						    $empty = Capsule::table('url_pic')

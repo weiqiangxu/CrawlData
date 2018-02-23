@@ -150,8 +150,8 @@ class threestep{
 								'grade'=>$grade,
 								'options'=>$options,
 								'modelyearfrom'=>$modelyearfrom,
-								'url' =>html_entity_decode($url),
-								'md5_url'=>md5(html_entity_decode($url)),
+								'url' =>$url,
+								'md5_url'=>md5($url),
 								'status'=>'wait',
 								'options' => $options
 							);
