@@ -18,7 +18,7 @@ class threestep{
 	public static function car()
 	{
 		// 下载所有的model页面
-		Capsule::table('url_market')->where('status','last')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','last')->orderBy('id')->chunk(5,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
 			// 并发请求
@@ -28,7 +28,7 @@ class threestep{
 
 
 		// 在这个下拉框也就可以获取所有的车型数据-获取所有的车型数据
-		Capsule::table('url_market')->where('status','lastCompleted')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','lastCompleted')->orderBy('id')->chunk(5,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)
@@ -150,8 +150,8 @@ class threestep{
 								'grade'=>$grade,
 								'options'=>$options,
 								'modelyearfrom'=>$modelyearfrom,
-								'url' =>$url,
-								'md5_url'=>md5($url),
+								'url' =>html_entity_decode($url),
+								'md5_url'=>md5(html_entity_decode($url)),
 								'status'=>'wait',
 								'options' => $options
 							);

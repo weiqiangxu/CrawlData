@@ -60,15 +60,33 @@ class guzzle{
 	public function poolRequest($step,$datas,$status='completed')
 	{
 
+		// 随机获取ip池的IP
+		$data = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
+
+		if(!empty($data['msg']))
+		{
+			$key = array_rand($data['msg'],1);
+			$ip = $data['msg'][$key];
+			// 使用随机获取的代理IP
+			$config = array(
+				'verify' => false,
+				'proxy'=> "http://".$ip['ip'].':'.$ip['port'],
+			);
+		}
+		else
+		{
+			// 无代理IP则使用真实IP
+			$config = array(
+				'verify' => false,
+			);
+			$key = 'none';
+		}
+
 		// 当前发送的请求的最小ID
 		$minId = $datas[0]->id;
 
+		// 创建request对象
 		$client = new Client();
-		// 并发处理请求对象
-		$config = array(
-			'verify' => false,
-			// 'proxy'=>'https://110.82.102.109:34098'
-		);
         $requests = function ($total) use ($client,$datas,$config) {
             foreach ($datas as $data) {
             	$url = html_entity_decode($data->url);
@@ -81,9 +99,7 @@ class guzzle{
 		$pool = new Pool($client, $requests(count($datas)), [
 			// 每发5个请求
 		    'concurrency' => 5,
-		    'fulfilled' => function ($response, $index ) use($step,$minId,$status) {
-		        // this is delivered each successful response "url"
-		        
+		    'fulfilled' => function ($response, $index ) use($step,$minId,$status) {		        
 		        // 当前处理的发送请求的ID
 		        $id = $index+(int)$minId;
 		        // 文件保存路径
@@ -104,14 +120,34 @@ class guzzle{
 				            ->update(['status' =>$status]);
 		    	}		    	
 		    },
-		    'rejected' => function ($reason, $index) use($step,$minId) {
+		    'rejected' => function ($reason, $index) use($step,$minId,$key) {
 		        // this is delivered each failed request
 		        $id = $index+(int)$minId;
-		        echo $step.' '.$id.'.html'." netError!".PHP_EOL;
-		        // 更改SQL语句
-	            Capsule::table($step)
-			            ->where('id', $id)
-			            ->update(['status' =>'netError']);
+		       	
+			    if(strpos($reason->getMessage(), 'Failed to connect to'))
+			    {
+		       		// 如果是IP无法连接就去除当前代理IP
+			    	if($key != 'none')
+			    	{
+				    	$data = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
+				    	unset($data['msg'][$key]);
+				    	file_put_contents(__DIR__.'\ip.json', json_encode($data));
+				    	echo "del one ip port".PHP_EOL;
+			    	}
+			    	else
+			    	{
+			    		echo 'ip has been deny!'.PHP_EOL;
+			    	}
+			    }
+			    else
+			    {
+			        // 如果是网址无效就更改status
+		            Capsule::table($step)
+				      ->where('id', $id)
+				      ->update(['status' =>'netError']);
+			    	echo $step.' '.$id.'.html'." netError!".PHP_EOL;
+			    }
+
 		    },
 		]);
 

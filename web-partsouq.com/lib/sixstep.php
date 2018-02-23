@@ -18,7 +18,7 @@ class sixstep{
 	public static function pic_down()
 	{
 		// 下载所有的配件详情页面
-		Capsule::table('url_pic')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_pic')->where('status','wait')->orderBy('id')->chunk(5,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_pic', 0777, true);
 		    // 并发请求

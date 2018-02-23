@@ -18,7 +18,7 @@ class twostep{
 	public static function market()
 	{
 		// 下载所有的market页面
-		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(5,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
 			// 并发请求
@@ -28,7 +28,7 @@ class twostep{
 		});
 
 		// 获取所有的车连接
-		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(5,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)
@@ -71,8 +71,8 @@ class twostep{
 								{
 									$temp[] = [
 												'status' => 'wait' ,
-												'url' => $data->url.'&'.$name.'='.$value->value,
-												'md5_url' => md5($data->url.'&'.$name.'='.$value->value),
+												'url' => html_entity_decode($data->url.'&'.$name.'='.$value->value),
+												'md5_url' => md5(html_entity_decode($data->url.'&'.$name.'='.$value->value)),
 												'level' => $data->level+1
 											];
 								}

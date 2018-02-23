@@ -19,7 +19,7 @@ class fourstep{
 	public static function part()
 	{
 		// 下载所有的model页面
-		Capsule::table('carinfo')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('carinfo')->where('status','wait')->orderBy('id')->chunk(5,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'carinfo', 0777, true);
 			// 并发请求
@@ -28,7 +28,7 @@ class fourstep{
 		});
 
 		// 获取所有的车连接
-		Capsule::table('carinfo')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('carinfo')->where('status','completed')->orderBy('id')->chunk(5,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)
@@ -48,7 +48,7 @@ class fourstep{
 						    $temp = [
 						    	'url' => html_entity_decode($prefix.$a->href),
 						    	'status' => 'wait',
-						    	'md5_url' => md5($prefix.$a->href),
+						    	'md5_url' => md5(html_entity_decode($prefix.$a->href)),
 						    	'car_id' => $data->id
 						    ];
 						    $empty = Capsule::table('url_part')
@@ -73,13 +73,13 @@ class fourstep{
 
 
 		// 将所有part默认页面移动过去
-		Capsule::table('carinfo')->where('status','readed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('carinfo')->where('status','readed')->orderBy('id')->chunk(5,function($datas){
 			foreach ($datas as $data)
 			{
 				$temp = [
-			    	'url' => $data->url,
+			    	'url' => html_entity_decode($data->url),
 			    	'status' => 'wait',
-			    	'md5_url' => md5($data->url),
+			    	'md5_url' => md5(html_entity_decode($data->url)),
 			    	'car_id' => $data->id
 			    ];
 			    $empty = Capsule::table('url_part')

@@ -18,7 +18,7 @@ class sevenstep{
 	public static function analyse()
 	{
 		// 现在解析pic html获取所有的零件相关信息
-		Capsule::table('url_pic')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_pic')->where('status','completed')->orderBy('id')->chunk(5,function($datas){
 			$prefix = 'https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)
@@ -93,13 +93,13 @@ class sevenstep{
 							'name' => $name,
 							'image' => $image,
 							'part_detail' => $part_detail,
-							'url' => $data->url,
-							'url_md5' => md5($data->url),							
+							'url' => html_entity_decode($data->url),
+							'url_md5' => md5(html_entity_decode($data->url)),							
 							'car_id' => $data->car_id
 						);
 
 						$empty = Capsule::table('carparts')
-					    	->where('url_md5',md5($data->url))
+					    	->where('url_md5',md5(html_entity_decode($data->url)))
 					    	->get()
 					    	->isEmpty();
 					    if($empty)

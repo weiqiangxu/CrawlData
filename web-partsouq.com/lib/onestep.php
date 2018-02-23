@@ -149,9 +149,9 @@ class onestep{
 				}
 			    // 存储进去所有的&body
 			    $temp = [
-			    	'url' => $prefix.$href,
+			    	'url' => html_entity_decode($prefix.$href),
 			    	'status' => 'wait',
-			    	'md5_url' => md5($prefix.$href)
+			    	'md5_url' => md5(html_entity_decode($prefix.$href))
 			    ];
 			    $empty = Capsule::table('url_market')
 			    	->where('md5_url',md5($prefix.$href))
