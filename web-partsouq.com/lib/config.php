@@ -43,4 +43,30 @@ define('PROJECT_APP_DOWN',APP_DOWN.'/www_partsouq_com/');
 // 客户端关闭脚本终止
 ignore_user_abort(true);
 
- 
+/**
+* $str Unicode编码后的字符串
+* $decoding 原始字符串的编码，默认utf-8
+* $prefix 编码字符串的前缀，默认"&#"
+* $postfix 编码字符串的后缀，默认";"
+*/
+function unicode_decode($unistr, $encoding = 'utf-8', $prefix = '&#', $postfix = ';')
+{	
+	$orig_str= $unistr;
+	$arruni = explode($prefix, $unistr);
+	$unistr = '';
+	for ($i = 1, $len = count($arruni); $i < $len; $i++)
+	{
+		if (strlen($postfix) > 0) {
+			$arruni[$i] = substr($arruni[$i], 0, strlen($arruni[$i]) - strlen($postfix));
+		}
+		$temp = intval($arruni[$i]);
+		$unistr .= ($temp < 256) ? chr(0) . chr($temp) : chr($temp / 256) . chr($temp % 256);
+	}
+	$str = str_split(iconv('UCS-2', $encoding, $unistr));
+
+	foreach ($str as $v)
+	{
+		$orig_str = preg_replace('/&#[\S]+?;/', $v, $orig_str,1);
+	}
+	return $orig_str;
+}
