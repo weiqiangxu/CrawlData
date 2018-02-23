@@ -47,6 +47,7 @@ class onestep{
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
+			    $table->string('car_id')->nullable();
 			});
 			echo "table url_part create".PHP_EOL;
 		}
@@ -58,32 +59,20 @@ class onestep{
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
+			    $table->string('car_id')->nullable();
 			});
 			echo "table url_pic create".PHP_EOL;
 		}
-		// rawdata
-		if(!Capsule::schema()->hasTable('rawdata'))
+		// carparts
+		if(!Capsule::schema()->hasTable('carparts'))
 		{
-			Capsule::schema()->create('rawdata', function (Blueprint $table){
+			Capsule::schema()->create('carparts', function (Blueprint $table){
 			    $table->increments('id');
 			    $table->string('simple')->nullable();
 			    $table->string('brand')->nullable();
-			    $table->string('code')->nullable();
 			    $table->string('name')->nullable();
-			    $table->string('destination')->nullable();
-			    $table->string('transmission')->nullable();
-			    $table->string('series_code')->nullable();
-			    $table->string('engine')->nullable();
-			    $table->string('bodystyle')->nullable();
-			    $table->string('steering')->nullable();
-			    $table->string('model')->nullable();
-			    $table->string('series_description')->nullable();
-
-			    $table->string('Grade')->nullable();
-			    $table->string('Options')->nullable();
-			    $table->string('Modelyearfrom')->nullable();
-
-
+			    $table->string('code')->nullable();
+			    $table->string('car_id')->nullable();
 			    // 描述图片地址
 			    $table->text('image')->nullable();
 			    // 配件左侧介绍信息json格式存储 {1:msg1,2:msg2}
@@ -93,7 +82,7 @@ class onestep{
 			    // 页面网址md5数值用于防止重复
 			    $table->string('url_md5')->unique();
 			});
-			echo "table rawdata create".PHP_EOL;
+			echo "table carparts create".PHP_EOL;
 		}
 
 		// carinfo
@@ -109,15 +98,17 @@ class onestep{
 			    $table->string('vehicleClass')->nullable();
 			    $table->string('model')->nullable();
 			    $table->text('aggregates')->nullable();
-
-			    $table->string('Modelyearto')->nullable();
-			    $table->string('Transmission')->nullable();
-			    $table->text('Engine')->nullable();
-
-				$table->string('Grade')->nullable();
-			    $table->string('BodyStyle')->nullable();
-			    $table->text('Modelyearfrom')->nullable();
-
+			    $table->string('modelyearto')->nullable();
+			    $table->string('transmission')->nullable();
+			    $table->text('engine')->nullable();
+				$table->string('grade')->nullable();
+			    $table->string('bodyStyle')->nullable();
+			    $table->text('modelyearfrom')->nullable();
+			    $table->text('url')->nullable();
+			    $table->string('md5_url')->unique();
+			    $table->string('options')->nullable();
+			    $table->string('status')->nullable();
+			    $table->string('options')->nullable();
 			});
 			echo "table carinfo create".PHP_EOL;
 		}

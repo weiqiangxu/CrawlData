@@ -52,7 +52,8 @@ class fivestep{
 						    $temp = [
 						    	'url' => html_entity_decode($prefix.$a->href),
 						    	'status' => 'wait',
-						    	'md5_url' => md5($prefix.$a->href)
+						    	'md5_url' => md5($prefix.$a->href),
+						    	'car_id' => $data->car_id
 						    ];
 						    $empty = Capsule::table('url_pic')
 						    	->where('md5_url', md5($prefix.$a->href))
