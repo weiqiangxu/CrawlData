@@ -18,7 +18,7 @@ class sevenstep{
 	public static function analyse()
 	{
 		// 现在解析pic html获取所有的零件相关信息
-		Capsule::table('url_pic')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_pic')->where('status','completed')->orderBy('id')->chunk(60,function($datas){
 			$prefix = 'https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)

@@ -19,19 +19,16 @@ class fourstep{
 	public static function part()
 	{
 		// 下载所有的model页面
-		Capsule::table('carinfo')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('carinfo')->where('status','wait')->orderBy('id')->chunk(60,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'carinfo', 0777, true);
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-	    		$guzzle = new guzzle();
-	    		$guzzle->down('carinfo',$data);
-		    }
+			// 并发请求
+		    $guzzle = new guzzle();
+		    $guzzle->poolRequest('carinfo',$datas);
 		});
 
 		// 获取所有的车连接
-		Capsule::table('carinfo')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('carinfo')->where('status','completed')->orderBy('id')->chunk(60,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)

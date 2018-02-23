@@ -18,24 +18,17 @@ class threestep{
 	public static function car()
 	{
 		// 下载所有的model页面
-		Capsule::table('url_market')->where('status','last')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','last')->orderBy('id')->chunk(60,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	$guzzle = new guzzle();
-		    	$guzzle->down('url_market',$data);
-		    	// 更新为最后级别的completed
-	            Capsule::table('url_market')
-		            ->where('id', $data->id)
-		            ->update(['status' =>'lastCompleted']);
-		    }
+			// 并发请求
+		    $guzzle = new guzzle();
+		    $guzzle->poolRequest('url_market',$datas,'lastCompleted');
 		});
 
 
 		// 在这个下拉框也就可以获取所有的车型数据-获取所有的车型数据
-		Capsule::table('url_market')->where('status','lastCompleted')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','lastCompleted')->orderBy('id')->chunk(60,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)

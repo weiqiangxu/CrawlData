@@ -108,7 +108,6 @@ class onestep{
 			    $table->string('md5_url')->unique();
 			    $table->string('options')->nullable();
 			    $table->string('status')->nullable();
-			    $table->string('options')->nullable();
 			});
 			echo "table carinfo create".PHP_EOL;
 		}

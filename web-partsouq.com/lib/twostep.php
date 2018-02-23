@@ -18,20 +18,17 @@ class twostep{
 	public static function market()
 	{
 		// 下载所有的market页面
-		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(60,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
-
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	$guzzle = new guzzle();
-		    	$guzzle->down('url_market',$data);
-		    }
+			// 并发请求
+		    $guzzle = new guzzle();
+		    $guzzle->poolRequest('url_market',$datas);
+		    
 		});
 
 		// 获取所有的车连接
-		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(60,function($datas){
 			$prefix ='https://partsouq.com';
 			// 循环块级结果
 		    foreach ($datas as $data)
