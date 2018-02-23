@@ -104,9 +104,14 @@ class guzzle{
 				            ->update(['status' =>$status]);
 		    	}		    	
 		    },
-		    'rejected' => function ($reason, $index) {
+		    'rejected' => function ($reason, $index) use($step,$minId) {
 		        // this is delivered each failed request
-		        echo "rejected reason: " . $reason.PHP_EOL;
+		        $id = $index+(int)$minId;
+		        echo $step.' '.$id.'.html'." netError!".PHP_EOL;
+		        // 更改SQL语句
+	            Capsule::table($step)
+			            ->where('id', $id)
+			            ->update(['status' =>'netError']);
 		    },
 		]);
 

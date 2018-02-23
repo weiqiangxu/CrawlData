@@ -132,10 +132,10 @@ class onestep{
 					continue;
 				}
 				// 加限定只要Nissan的数据
-				if(!strpos($article->find("a",0)->href, 'Nissan'))
-				{
-					continue;
-				}
+				// if(!strpos($article->find("a",0)->href, 'Nissan'))
+				// {
+				// 	continue;
+				// }
 
 				// 获取当前品牌
 				$href = explode("?c=", $article->find("a",0)->href);
