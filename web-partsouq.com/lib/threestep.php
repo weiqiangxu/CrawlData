@@ -49,7 +49,7 @@ class threestep{
 								continue;
 							}
 						    
-						    $url = html_entity_decode($prefix.$tr->find("a",0)->href);
+						    $url = $prefix.$tr->find("a",0)->href;
 
 							$brand = "";
 							if($dom->find("td[data-title=brand]",0))

@@ -29,7 +29,7 @@ class guzzle{
 			// 'proxy'=>'https://110.82.102.109:34098'
 		);
 		// 注册异步请求
-		$client->getAsync(html_entity_decode($data->url),$config)->then(
+		$client->getAsync(unicode_decode($data->url),$config)->then(
 			// 成功获取页面回调
 		    function (ResponseInterface $res) use ($step,$file,$data)
 		    {
@@ -89,7 +89,7 @@ class guzzle{
 		$client = new Client();
         $requests = function ($total) use ($client,$datas,$config) {
             foreach ($datas as $data) {
-            	$url = html_entity_decode($data->url);
+            	$url = unicode_decode($data->url);
                 yield function() use ($client,$url,$config) {
                     return $client->getAsync($url,$config);
                 };
