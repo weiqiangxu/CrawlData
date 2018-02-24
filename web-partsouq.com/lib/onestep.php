@@ -120,7 +120,11 @@ class onestep{
 		// 解析首页
 		$prefix = 'https://partsouq.com/en/catalog/genuine/filter?c=';
 		$client = new Client();
-		$response = $client->get('https://partsouq.com/catalog/genuine',['verify' => false]);
+		$config = array(
+				'verify' => false,
+				// 'proxy'=> "http://60.184.196.224:22914",
+			);
+		$response = $client->get('https://partsouq.com/catalog/genuine',$config);
 		// 创建dom对象
 		if($dom = HtmlDomParser::str_get_html($response->getBody()))
 		{
