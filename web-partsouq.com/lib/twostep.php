@@ -18,12 +18,13 @@ class twostep{
 	public static function market()
 	{
 		// 下载所有的market页面
-		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(5,function($datas){
+		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(3,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
 			// 并发请求
 		    $guzzle = new guzzle();
 		    $guzzle->poolRequest('url_market',$datas);
+		    sleep(3);
 		    
 		});
 

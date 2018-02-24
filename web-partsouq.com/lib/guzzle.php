@@ -72,6 +72,7 @@ class guzzle{
 				'verify' => false,
 				'proxy'=> "http://".$ip['ip'].':'.$ip['port'],
 			);
+			echo "proxy ip: http://".$ip['ip'].':'.$ip['port'].PHP_EOL;
 		}
 		else
 		{
