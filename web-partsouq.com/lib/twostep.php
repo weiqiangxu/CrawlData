@@ -71,7 +71,7 @@ class twostep{
 								{
 									$temp[] = [
 												'status' => 'wait' ,
-												'url' => $data->url.'&'.$name.'='.$value->value,
+												'url' => $data->url.'&'.$name.'='.unicode_decode($value->value),
 												'md5_url' => md5($data->url.'&'.$name.'='.$value->value),
 												'level' => $data->level+1
 											];
