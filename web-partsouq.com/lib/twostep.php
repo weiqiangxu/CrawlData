@@ -68,18 +68,26 @@ class twostep{
 							$temp = array();
 							foreach ($dom->find('#model-filter-form .cat_flt_',$data->level)->find("option") as $value)
 							{
+								$temp_url = $data->url.'&'.$name.'='.urlencode(html_entity_decode(unicode_decode($value->value)));
 								if($value->value!="")
 								{
-									$temp[] = [
+									$temp = [
 												'status' => 'wait' ,
-												'url' => $data->url.'&'.$name.'='.urlencode(html_entity_decode(unicode_decode($value->value))),
-												'md5_url' => md5($data->url.'&'.$name.'='.$value->value),
+												'url' => $temp_url,
+												'md5_url' => md5($temp_url),
 												'level' => $data->level+1
 											];
+									// print_r($temp);die;
+									$empty = Capsule::table('url_market')
+								    	->where('md5_url',md5($temp_url))
+								    	->get()
+								    	->isEmpty();
+								    if($empty)
+								    {
+									    Capsule::table('url_market')->insert($temp);					    	
+								    }
 								}
 							}
-							// 插入所有数据
-							Capsule::table('url_market')->insert($temp);
 							// 标记为失效页面
 							Capsule::table('url_market')
 					            ->where('id', $data->id)
