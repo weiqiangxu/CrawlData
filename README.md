@@ -1,55 +1,21 @@
 # 数据爬取工具包
 
-### 如何使用web-cn357.com：
+### 如何使用
 
-1.  配置resource/autoload.php的数据库信息。
+1.  进入resource/composer.json目录安装依赖。
+2.  配置resource/autoload.php的数据库信息。
+3.  依次执行脚本。
 
-2.  依次执行1-step.php、2-step.php、3-step.php、4-step.php、5-step.php。
+### 数据来源：
 
-***
+[商车网汽车公告批次](http://www.cn357.com/notice_list/)、[RealOEM.com](http://www.realoem.com/bmw/enUS/select?product=P&archive=0)、[partsouq.com](https://partsouq.com/)、
 
-### 注意：
+### 步骤解读：
 
-1.  *1-step.php会根据数据库表 url_list 和 [商车网汽车公告批次](http://www.cn357.com/notice_list/) 的最大批次号检测需要更新的批次号。*
+1.  自动创建数据库以及相关的有层级关系的表,index > list > detail。
+2.  解析首页获取列表页链接，下载列表页并解析获取详情页链接，下载详情页并解析获取需要的数据。
 
-2.  *3-step.php在关闭客户端之后,再次执行会继续原来的下载。其他脚本必须一次性执行完成所有。*
+### 项目优点：
 
-3.  *执行结果：自动创建的数据库 temp_cn357_201801 存储原始数据。最终清洗后的数据存储 model_jdcsww*
-
-***
-
-### 如何使用web-realoem.com：
-
-1.  配置resource/autoload.php的数据库信息。
-
-2.  依次执行1-step.php、2-step.php、3-step.php、4-step.php、5-step.php。
-
-***
-
-### 注意：
-
-1.  *数据来源：[RealOEM.com](http://www.realoem.com/bmw/enUS/select?product=P&archive=0)*
-
-2.  *每个脚本可以多开窗口采集并支持断点采集，并且请确保每个脚本执行完毕否则出现数据不全*
-
-4.  *多窗口执行指令过程之中可能会出现pdo exception url unique 这是多窗口并发插入导致的，因为加入unque防止数据重复(尽管insert之前isEmpty校验过)，只要最终数据是正确的就可以*
-
-4.  *执行结果：自动创建的数据库 temp_realoem_201801 - rawdata 存储原始数据。*
-
-***
-
-### 如何使用web-partsouq.com：
-
-1.  配置resource/autoload.php的数据库信息。
-
-2.  依次执行1-step.php、2-step.php、3-step.php。
-
-***
-
-### 注意：
-
-1.  *数据来源：[partsouq.com](https://partsouq.com/)*
-
-2.  *每个脚本可以多开窗口采集并支持断点采集，并且请确保每个脚本执行完毕否则出现数据不全*
-
-4.  *执行结果：自动创建的数据库 temp_partsouq_201801 - rawdata 存储原始数据。*
+1.  使用简单,composer + php + MySQL即可运行项目。
+2.  自动创建数据库，支持断点下载，md5_url保证数据唯一，partsouq使用guzzle异步并发下载保证下载的页面完整以及下载速度，加入代理IP池随机抽取防止被封IP，代码目录结构简单。
