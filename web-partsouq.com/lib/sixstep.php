@@ -21,7 +21,7 @@ class sixstep{
 		Capsule::table('url_pic')->where('status','wait')->orderBy('id')->chunk(5,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'url_pic', 0777, true);
-		    // 并发请求
+		    // 调用guzzle实现并发异步请求下载
 		    $guzzle = new guzzle();
 		    $guzzle->poolRequest('url_pic',$datas);
 		});
