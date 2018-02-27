@@ -69,9 +69,6 @@ class onestep{
 			Capsule::schema()->create('carparts', function (Blueprint $table){
 			    $table->increments('id');
 			    $table->string('simple')->nullable();
-			    $table->string('brand')->nullable();
-			    $table->string('name')->nullable();
-			    $table->string('code')->nullable();
 			    $table->string('car_id')->nullable();
 			    // 描述图片地址
 			    $table->text('image')->nullable();
@@ -89,24 +86,50 @@ class onestep{
 		if(!Capsule::schema()->hasTable('carinfo'))
 		{
 			Capsule::schema()->create('carinfo', function (Blueprint $table){
-			    $table->increments('id');
-			    $table->string('brand')->nullable();
-			    $table->string('catalog')->nullable();
-			    $table->string('name')->nullable();
-			    $table->string('market')->nullable();
-			    $table->string('description')->nullable();
-			    $table->string('vehicleClass')->nullable();
-			    $table->string('model')->nullable();
-			    $table->text('aggregates')->nullable();
-			    $table->string('modelyearto')->nullable();
-			    $table->string('transmission')->nullable();
-			    $table->text('engine')->nullable();
-				$table->string('grade')->nullable();
-			    $table->string('bodyStyle')->nullable();
-			    $table->text('modelyearfrom')->nullable();
+				$table->increments('id');
+				// 汽车所属类别
+				$table->text('CatalogBrand')->nullable();
+				$table->text('CatalogName')->nullable();
+				$table->text('CatalogCode')->nullable();
+				// 汽车栏目数据
+				$table->text('Name')->nullable();
+				$table->text('Transmission')->nullable();
+				$table->text('SeriesCode')->nullable();
+				$table->text('Engine')->nullable();
+				$table->text('BodyStyle')->nullable();
+				$table->text('Steering')->nullable();
+				$table->text('Model')->nullable();
+				$table->text('SeriesDescription')->nullable();
+				$table->text('Doors')->nullable();
+				$table->text('Country')->nullable();
+				$table->text('Grade')->nullable();
+				$table->text('Region')->nullable();
+				$table->text('CountryDecode')->nullable();
+				$table->text('Manufactured')->nullable();
+				$table->text('ModelYearTo')->nullable();
+				$table->text('OptionS')->nullable();
+				$table->text('Family')->nullable();
+				$table->text('VehicleCategory')->nullable();
+				$table->text('ModelYearFrom')->nullable();
+				$table->text('Market')->nullable();
+				$table->text('Autoid')->nullable();
+				$table->text('Description')->nullable();
+				$table->text('ProdPeriod')->nullable();
+				$table->text('CarLine')->nullable();
+				$table->text('DestinationRegion')->nullable();
+				$table->text('Datefrom')->nullable();
+				$table->text('ModelYear')->nullable();
+				$table->text('Drive')->nullable();
+				$table->text('CatalogNo')->nullable();
+				$table->text('VehicleClass')->nullable();
+				$table->text('Aggregates')->nullable();
+				$table->text('FrameS')->nullable();
+				$table->text('Modification')->nullable();
+				$table->text('VehicleType')->nullable();
+				$table->text('Type')->nullable();
+				// 汽车配件详情页链接
 			    $table->text('url')->nullable();
 			    $table->string('md5_url')->unique();
-			    $table->string('options')->nullable();
 			    $table->string('status')->nullable();
 			});
 			echo "table carinfo create".PHP_EOL;

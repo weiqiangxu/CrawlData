@@ -17,16 +17,7 @@ class twostep{
 	// 车系=》车
 	public static function market()
 	{
-		// 下载所有的market页面
-		Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(3,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
-			// 并发请求
-		    $guzzle = new guzzle();
-		    $guzzle->poolRequest('url_market',$datas);
-		    sleep(3);
-		    
-		});
+
 
 		// 获取所有的车连接
 		Capsule::table('url_market')->where('status','completed')->orderBy('id')->chunk(5,function($datas){
@@ -52,6 +43,7 @@ class twostep{
 							{	
 								// 获取数字
 								preg_match("/\d+/", $dom->find("#content .container h3",0)->innertext,$num);
+								echo 'url_market '.$data->id.' num is '.current($num).PHP_EOL;
 								if(current($num) < 100 && current($num)>0)
 								{
 									// 此时已经是最终页面设置为last
@@ -64,6 +56,15 @@ class twostep{
 							}
 							// 此时还不是最终链接，只能拼接下一级的下拉框获取新的url
 							// 获取第一个下拉框选项拼接url的所有结果集 
+							if(!$dom->find('#model-filter-form .cat_flt_',$data->level))
+							{
+								// 标记为失效页面
+								Capsule::table('url_market')
+						            ->where('id', $data->id)
+						            ->update(['status' => 'non-object']);
+						        echo 'url_market non-object '.$data->id.PHP_EOL; 
+						        continue;
+							}
 							$name = $dom->find('#model-filter-form .cat_flt_',$data->level)->name;
 							$temp = array();
 							foreach ($dom->find('#model-filter-form .cat_flt_',$data->level)->find("option") as $value)
@@ -103,6 +104,7 @@ class twostep{
 						}
 					}
 		    	}
+		    	echo 'url_market '.$data->id.' analyse! '.PHP_EOL;
 		    }
 		});
 
@@ -112,5 +114,15 @@ class twostep{
            	->count();
         echo "still have item need to download ,sum : ".$wait."\r\n";
 
+	// 下载所有的market页面
+	Capsule::table('url_market')->where('status','wait')->orderBy('id')->chunk(3,function($datas){
+		// 创建文件夹
+		@mkdir(PROJECT_APP_DOWN.'url_market', 0777, true);
+		// 并发请求
+	    $guzzle = new guzzle();
+	    $guzzle->poolRequest('url_market',$datas);
+	    sleep(3);
+	    
+	});
 	}
 }

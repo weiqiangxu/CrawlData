@@ -33,27 +33,7 @@ class sevenstep{
 		    		if($dom = HtmlDomParser::str_get_html($temp))
 					{
 						$temp = array();
-						// 解析入库
-						$brand = $dom->find(".table-bordered-n tbody",0)->last_child()->find("h4",0)->plaintext;
-
-						// 名称
-						$name = "";
-						if($dom->find("td[data-title=Name]",0))
-						{
-							$name = $dom->find("td[data-title=Name]",0)->plaintext;
-						}
-						
-
-
-						$code = "";
-						if($dom->find(".table-bordered-n tbody tr",1))
-						{
-							if($dom->find(".table-bordered-n tbody tr",1)->last_child())
-							{
-								$code =  $dom->find(".table-bordered-n tbody tr",1)->last_child()->plaintext;
-							}
-						}
-						
+						// 获取零件所在目录
 						$simple = "";
 						if($dom->find(".col-xs-8 h4",0))
 						{
@@ -65,9 +45,7 @@ class sevenstep{
 						$image = $prefix.$image;
 						// 获取图片上的点的介绍
 						$pic_des = array();
-
 						$pic_des_key = array();
-
 						if($dom->find('.bottom-block-table th'))
 						{
 							foreach($dom->find('.bottom-block-table th') as $v)
@@ -85,19 +63,16 @@ class sevenstep{
 							}
 						}
 						$part_detail = serialize($pic_des);
-						// 最后拼接数组入库
+						// 拼接入库
 						$temp = array(
 							'simple' => $simple,
-							'brand' => $brand,
-							'code' => $code,
-							'name' => $name,
 							'image' => $image,
 							'part_detail' => $part_detail,
 							'url' => $data->url,
 							'url_md5' => md5($data->url),							
 							'car_id' => $data->car_id
 						);
-
+						// 校验是否已经存在
 						$empty = Capsule::table('carparts')
 					    	->where('url_md5',md5($data->url))
 					    	->get()
@@ -109,7 +84,7 @@ class sevenstep{
 				            Capsule::table('url_pic')
 						            ->where('id', $data->id)
 						            ->update(['status' =>'readed']);
-						    // 命令行执行时候不需要经过apache直接输出在窗口
+						    // 输出日志信息
 				            echo 'url_pic '.$data->id.'.html'."  analyse successful!".PHP_EOL;
 					    }
 					}
