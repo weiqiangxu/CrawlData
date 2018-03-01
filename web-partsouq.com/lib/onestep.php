@@ -20,7 +20,7 @@ class onestep{
 		if(!Capsule::schema()->hasTable('url_market'))
 		{
 			Capsule::schema()->create('url_market', function (Blueprint $table){
-			    $table->increments('id');
+			    $table->increments('id')->unique();
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
 			    $table->string('level')->nullable()->default(0);
@@ -32,7 +32,7 @@ class onestep{
 		if(!Capsule::schema()->hasTable('url_car'))
 		{
 			Capsule::schema()->create('url_car', function (Blueprint $table){
-			    $table->increments('id');
+			    $table->increments('id')->unique();
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
@@ -43,7 +43,7 @@ class onestep{
 		if(!Capsule::schema()->hasTable('url_part'))
 		{
 			Capsule::schema()->create('url_part', function (Blueprint $table){
-			    $table->increments('id');
+			    $table->increments('id')->unique();
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
@@ -55,7 +55,7 @@ class onestep{
 		if(!Capsule::schema()->hasTable('url_pic'))
 		{
 			Capsule::schema()->create('url_pic', function (Blueprint $table){
-			    $table->increments('id');
+			    $table->increments('id')->unique();
 			    $table->string('md5_url')->unique();
 			    $table->text('url')->nullable();
 			    $table->string('status')->nullable();
@@ -67,7 +67,7 @@ class onestep{
 		if(!Capsule::schema()->hasTable('carparts'))
 		{
 			Capsule::schema()->create('carparts', function (Blueprint $table){
-			    $table->increments('id');
+			    $table->increments('id')->unique();
 			    $table->string('simple')->nullable();
 			    $table->string('car_id')->nullable();
 			    // 描述图片地址
@@ -86,7 +86,7 @@ class onestep{
 		if(!Capsule::schema()->hasTable('carinfo'))
 		{
 			Capsule::schema()->create('carinfo', function (Blueprint $table){
-				$table->increments('id');
+				$table->increments('id')->unique();
 				// 汽车所属类别
 				$table->text('CatalogBrand')->nullable();
 				$table->text('CatalogName')->nullable();
