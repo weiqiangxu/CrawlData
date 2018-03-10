@@ -9,14 +9,14 @@ use Huluo\Extend\Gather;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
-  * 下载所有零件详情页面
+  * 车型详情
   * @author xu
   * @copyright 2018/01/29
   */
 class fourstep{
 
-	// model
-	public static function model()
+	// model_detail
+	public static function model_detail()
 	{
 		// 下载所有的model页面
 		Capsule::table('model_list')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
@@ -30,7 +30,7 @@ class fourstep{
 		// 解析所有的model页面获取engine信息
 		Capsule::table('model_list')->where('status','completed')->orderBy('id')->chunk(10,function($datas){
 
-			$prefix = 'http://www.rockauto.com';
+			$prefix = 'https://car.autohome.com.cn';
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
@@ -39,12 +39,37 @@ class fourstep{
 		    	// 判定是否已经存在且合法
 		    	if (file_exists($file))
 		    	{
-
 		    		// 字符编码转换
 					$html = mb_convert_encoding(file_get_contents($file),"UTF-8", "gb2312");
 
 		    		if($dom = HtmlDomParser::str_get_html($html))
 					{
+						// 检测是否有下一页
+						if($dom->find('.page-item-next',0))
+						{
+							if($dom->find('.page-item-next',0)->href != 'javascript:void(0)')
+							{
+								$list_url = $prefix.$dom->find('.page-item-next',0)->href;
+								// 存储
+							    $temp = [
+							    	'url' => $list_url,
+							    	'status' => 'wait',
+							    	'md5_url' => md5($list_url),
+							    	'brand' => $data->brand,
+							    	'subbrand' => $data->subbrand,
+							    	'series' => $data->series
+							    ];
+							    // 入库下一页
+								$empty = Capsule::table('model_list')
+									->where('md5_url',md5($list_url))
+									->get()
+									->isEmpty();
+								if($empty)
+								{
+									Capsule::table('model_list')->insert($temp);					    	
+								}
+							}
+						}
 						// 车型入库												
 						foreach ($dom->find('.interval01-list li .interval01-list-cars-infor') as $div)
 						{
@@ -57,28 +82,21 @@ class fourstep{
 						    	'url' => $url,
 						    	'status' => 'wait',
 						    	'md5_url' => md5($url),
-						    	'brand_one' => $data->brand_one,
-						    	'brand_two' => $data->brand_two,
+						    	'brand' => $data->brand,
+						    	'subbrand' => $data->subbrand,
 						    	'series' => $data->series,
 						    	'model' => $model
 						    ];
-							$empty = Capsule::table('model')
+						    // 入库详情表
+							$empty = Capsule::table('model_detail')
 								->where('md5_url',md5($url))
 								->get()
 								->isEmpty();
 							if($empty)
 							{
-								Capsule::table('model')->insert($temp);					    	
+								Capsule::table('model_detail')->insert($temp);					    	
 							}
 						}
-	
-						// 检测是否有下一页
-						foreach($dom->find('.page-item-next',0))
-						{
-							echo $dom->find('.page-item-next',0)->tag;die;
-						}
-
-
 			            // 更改SQL语句
 			            Capsule::table('model_list')
 					            ->where('id', $data->id)
@@ -90,7 +108,11 @@ class fourstep{
 		    }
 		});
 
-
+		// 获取需要下载的页面
+		$wait = Capsule::table('model_list')
+            ->where('status', 'wait')
+           	->count();
+        if($wait) echo "still have item of model_list need to download ,sum : ".$wait."\r\n";
 	}
 
 }

@@ -61,6 +61,23 @@ class onestep{
 			echo "table model_list create".PHP_EOL;
 		}
 
+		// model_detail
+		if(!Capsule::schema()->hasTable('model_detail'))
+		{
+			Capsule::schema()->create('model_detail', function (Blueprint $table){
+			    $table->increments('id')->unique();
+			    $table->string('md5_url')->unique();
+			    $table->text('url')->nullable();
+			    $table->string('status')->nullable();
+			    $table->string('brand')->nullable()->comment('品牌');
+			    $table->string('subbrand')->nullable()->comment('子品牌');
+			    $table->string('series')->nullable()->comment('车系');
+			    $table->string('model')->nullable()->comment('车型');
+			});
+			echo "table model_detail create".PHP_EOL;
+		}
+
+
 	}
 	// 获取品牌链接
 	public static function brand()

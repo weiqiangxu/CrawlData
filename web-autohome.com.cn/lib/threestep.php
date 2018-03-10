@@ -48,13 +48,14 @@ class threestep{
 						// 获取在售、停售、即将销售的url
 						foreach ($dom->find(".border-t-no ul li") as $li)
 						{
+
 							// 过滤无效连接
-							if($li->tag && $li->tag=='disabled')
+							if(!$li->find('a',0))
 							{
 								continue;
 							}
 							// 获取所有链接
-							$url = $li->find('a',0)->href;
+							$url = $prefix.$li->find('a',0)->href;
 							// 存储
 						    $temp = [
 						    	'url' => $url,
@@ -64,6 +65,7 @@ class threestep{
 						    	'subbrand' => $data->subbrand,
 						    	'series' => $data->series
 						    ];
+				
 						    // 入库
 							$empty = Capsule::table('model_list')
 								->where('md5_url',md5($url))

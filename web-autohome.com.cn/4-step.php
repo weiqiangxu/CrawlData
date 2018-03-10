@@ -9,5 +9,5 @@ require_once('./lib/fourstep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
 
-// 获取所有汽车的发动机
-fourstep::engine();
+// 获取所有列表页
+fourstep::model_detail();
