@@ -29,8 +29,10 @@ class fourstep{
 
 		// 解析所有的model页面获取engine信息
 		Capsule::table('model_list')->where('status','completed')->orderBy('id')->chunk(10,function($datas){
-
+			// 站点根路径
 			$prefix = 'https://car.autohome.com.cn';
+			// 详情配置页面根路径
+			$detailPrefix = 'https://car.autohome.com.cn/config/spec/';
 			// 循环块级结果
 		    foreach ($datas as $data)
 		    {
@@ -73,8 +75,11 @@ class fourstep{
 						// 车型入库												
 						foreach ($dom->find('.interval01-list li .interval01-list-cars-infor') as $div)
 						{
+							
+							// 正则匹配获取spec的ID
+							preg_match('/\/spec\/(\d+)\//',ltrim($div->find('p',0)->find('a',0)->href,'//'),$match);
 
-							$url = ltrim($div->find('p',0)->find('a',0)->href,'//');
+							$url = $detailPrefix.$match[1].'.html';
 							$model = $div->find('p',0)->find('a',0)->plaintext;
 
 							// 存储
