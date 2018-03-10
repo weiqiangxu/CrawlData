@@ -18,4 +18,9 @@
 ### 项目优点：
 
 1.  使用简单,composer + php + MySQL即可运行项目。
-2.  自动创建数据库，支持断点下载，md5_url保证数据唯一，partsouq使用guzzle异步并发下载保证下载的页面完整以及下载速度，加入代理IP池随机抽取防止被封IP，代码目录结构简单。
+2.  自动创建MySQL数据库表，状态值记录方便排错并保证数据完整和唯一，支持断点下载。
+3.  guzzle异步并发爬取保证一定爬取速度，DOM解析简便，加入代理IP池防止被反爬取，代结构简单清晰易读。
+
+### 运行示图：
+
+![gif](https://github.com/weiqiangxu/php_doc/blob/master/static/show.gif?raw=true)
