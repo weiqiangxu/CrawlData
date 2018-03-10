@@ -14,73 +14,75 @@ use Illuminate\Database\Schema\Blueprint;
   */
 class threestep{
 
-	// 获取年份下面的model连接
-	public static function model()
+	// 下载
+	public static function model_list()
 	{
-		// year
-		Capsule::table('year')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
+		// 下载
+		Capsule::table('series')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
 			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'year', 0777, true);
+			@mkdir(PROJECT_APP_DOWN.'series', 0777, true);
 			// 并发请求
 		    $guzzle = new guzzle();
-		    $guzzle->poolRequest('year',$datas);
-		    sleep(2);    
+		    $guzzle->poolRequest('series',$datas);
 		});
 
+		// 解析获取在售、即将出售、停售的url
+		Capsule::table('series')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 
-		// 获取所有的year连接
-		Capsule::table('year')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+			$prefix = 'https://car.autohome.com.cn';
 
-			$prefix = 'http://www.rockauto.com';
-			// 循环块级结果
+			// 在售统统入库
 		    foreach ($datas as $data)
 		    {
 		    	// 解析页面
-		    	$file = PROJECT_APP_DOWN.'year/'.$data->id.'.html';
+		    	$file = PROJECT_APP_DOWN.'series/'.$data->id.'.html';
 		    	// 判定是否已经存在且合法
 		    	if (file_exists($file))
 		    	{
-		    		if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
+		    		// 字符编码转换
+					$html = mb_convert_encoding(file_get_contents($file),"UTF-8", "gb2312");
+					// dom解析
+		    		if($dom = HtmlDomParser::str_get_html($html))
 					{
-						// 获取brand页面所有的model
-						foreach($dom->find('.nchildren .nchildren .navlabellink') as $li)
+								
+						// 获取在售、停售、即将销售的url
+						foreach ($dom->find(".border-t-no ul li") as $li)
 						{
-							$url = $prefix.$li->href;
-						    // 存储进去所有的&model
+							// 过滤无效连接
+							if($li->tag && $li->tag=='disabled')
+							{
+								continue;
+							}
+							// 获取所有链接
+							$url = $li->find('a',0)->href;
+							// 存储
 						    $temp = [
 						    	'url' => $url,
 						    	'status' => 'wait',
 						    	'md5_url' => md5($url),
-						    	'status' => 'wait',
 						    	'brand' => $data->brand,
-						    	'year' => $data->year,
-						    	'model' => $li->plaintext
+						    	'subbrand' => $data->subbrand,
+						    	'series' => $data->series
 						    ];
-						    $empty = Capsule::table('model')
-						    	->where('md5_url',md5($url))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('model')->insert($temp);					    	
-						    }
+						    // 入库
+							$empty = Capsule::table('model_list')
+								->where('md5_url',md5($url))
+								->get()
+								->isEmpty();
+							if($empty)
+							{
+								Capsule::table('model_list')->insert($temp);					    	
+							}
 						}
-			            // 更改SQL语句
-			            Capsule::table('year')
+			            // 标记已读
+			            Capsule::table('series')
 					            ->where('id', $data->id)
 					            ->update(['status' =>'readed']);
 					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'year '.$data->id.'.html'."  analyse successful!".PHP_EOL;
+			            echo 'series '.$data->id.'.html'."  analyse successful!".PHP_EOL;
 					}
 		    	}
 		    }
 		});
-
-		// 检测是否还有未下载完成
-		$wait = Capsule::table('year')
-            ->where('status', 'wait')
-           	->count();
-        if($wait>0) echo "still have item need to download ,sum : ".$wait."\r\n";
-
 	}
 }

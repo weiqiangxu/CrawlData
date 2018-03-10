@@ -10,4 +10,4 @@ require_once('./lib/twostep.php');
 require_once('./lib/guzzle.php');
 
 // 对筛选条件拼接，直到每一个页面的shown数量小于100
-twostep::brand_two();
+twostep::series();

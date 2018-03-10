@@ -13,4 +13,4 @@ require_once('./lib/guzzle.php');
 onestep::initable();
 
 // 获取所有的品牌
-onestep::brand_one();
+onestep::brand();
