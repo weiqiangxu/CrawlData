@@ -7,6 +7,7 @@ use Sunra\PhpSimple\HtmlDomParser;
 use Huluo\Extend\Gather;
 
 use Illuminate\Database\Schema\Blueprint;
+use JonnyW\PhantomJs\Client;
 
 /**
   * 车型详情
@@ -18,6 +19,36 @@ class fivestep{
 	// car
 	public static function car()
 	{
+
+		// 解析JavaScript渲染后的页面
+		Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chunk(10,function($datas){
+			// 循环块级结果
+		    foreach ($datas as $data)
+		    {
+				$client = Client::getInstance();
+
+				$client->getEngine()->setPath(APP_PATH.'/bin/phantomjs.exe');
+				$request  = $client->getMessageFactory()->createRequest();
+				$response = $client->getMessageFactory()->createResponse();
+
+				$request->setMethod('GET');
+				$request->setUrl($data->url);
+
+				$client->send($request, $response);
+
+				if($response->getStatus() === 200) {
+				    
+		    		if($dom = HtmlDomParser::str_get_html($response->getContent()))
+					{
+						var_dump($dom->find("#tr_9",0)->children(1)->outertext);die;
+					}
+				}
+		    }
+		});
+
+
+
+
 		// 下载所有的model_detail页面
 		Capsule::table('model_detail')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
 			// 创建文件夹
@@ -43,9 +74,6 @@ class fivestep{
 
 		    		if($dom = HtmlDomParser::str_get_html($html))
 					{
-
-
-						
 			            // 更改SQL语句
 			            Capsule::table('model_detail')
 					            ->where('id', $data->id)
@@ -56,7 +84,6 @@ class fivestep{
 		    	}
 		    }
 		});
-
 
 
 		// 获取需要下载的页面

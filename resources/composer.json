@@ -7,7 +7,9 @@
         "overtrue/pinyin": "^3.0",
         "sunra/php-simple-html-dom-parser": "^1.5",
         "predis/predis": "^1.1",
-        "phpoffice/phpexcel": "^1.8"
+        "phpoffice/phpexcel": "^1.8",
+        "jonnyw/php-phantomjs":"4.6.0",
+        "symfony/dependency-injection":"3.3.9"
     },
     "autoload" : {
         "Huluo\\Extend\\": "extend",
@@ -17,5 +19,16 @@
         "classmap": [
             "extend"
         ]
+    },
+     "scripts": {
+        "post-install-cmd": [
+            "PhantomInstaller\\Installer::installPhantomJS"
+        ],
+        "post-update-cmd": [
+            "PhantomInstaller\\Installer::installPhantomJS"
+        ]
+    },
+    "config": {
+        "bin-dir": "bin"
     }
 }
