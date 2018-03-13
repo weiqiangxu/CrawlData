@@ -15,6 +15,9 @@ use GuzzleHttp\Psr7\Request;
 
 use GuzzleHttp\Pool;
 
+use JonnyW\PhantomJs\Client as PhantomJsClitent;
+
+
 class guzzle{
 
 	// 按顺序处理单个异步请求
@@ -137,4 +140,42 @@ class guzzle{
 		// Force the pool of requests to complete.
 		$promise->wait();
 	}
+
+
+
+
+	// 获取JavaScript渲染后的HTML
+	public function phantomjsDown($step,$data)
+	{
+		// 页面文件名
+    	$file = PROJECT_APP_DOWN.$step.'/'.$data->id.'.html';
+    	// 连接配置
+		$config = array(
+			'verify' => false,
+			// 'proxy'=>'https://110.82.102.109:34098'
+		);
+		// 获取JavaScript渲染后的页面
+		$client = PhantomJsClitent::getInstance();
+		$client->getEngine()->setPath(APP_PATH.'/bin/phantomjs.exe');
+		$request  = $client->getMessageFactory()->createRequest();
+		$response = $client->getMessageFactory()->createResponse();
+		$request->setMethod('GET');
+		$request->setUrl($data->url);
+		$client->send($request, $response);
+		// 保存文件
+		if($response->getStatus() === 200)
+		{
+			file_put_contents($file, $response->getContent());
+			// 命令行执行时候不需要经过apache直接输出在窗口
+		    echo $step.' '.$data->id.'.html'." download successful!".PHP_EOL;
+		}
+		// 更新状态
+		if(file_exists($file))
+    	{
+            Capsule::table($step)
+	            ->where('id', $data->id)
+	            ->update(['status' =>'completed']);
+    	}
+	}
+
 }

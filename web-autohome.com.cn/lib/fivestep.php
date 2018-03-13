@@ -5,9 +5,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Sunra\PhpSimple\HtmlDomParser;
 // 多进程下载器
 use Huluo\Extend\Gather;
-
 use Illuminate\Database\Schema\Blueprint;
-use JonnyW\PhantomJs\Client;
 
 /**
   * 车型详情
@@ -20,42 +18,16 @@ class fivestep{
 	public static function car()
 	{
 
-		// 解析JavaScript渲染后的页面
-		Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chunk(10,function($datas){
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-				$client = Client::getInstance();
-
-				$client->getEngine()->setPath(APP_PATH.'/bin/phantomjs.exe');
-				$request  = $client->getMessageFactory()->createRequest();
-				$response = $client->getMessageFactory()->createResponse();
-
-				$request->setMethod('GET');
-				$request->setUrl($data->url);
-
-				$client->send($request, $response);
-
-				if($response->getStatus() === 200) {
-				    
-		    		if($dom = HtmlDomParser::str_get_html($response->getContent()))
-					{
-						var_dump($dom->find("#tr_9",0)->children(1)->outertext);die;
-					}
-				}
-		    }
-		});
-
-
-
-
-		// 下载所有的model_detail页面
+		// 下载
 		Capsule::table('model_detail')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
 			// 创建文件夹
 			@mkdir(PROJECT_APP_DOWN.'model_detail', 0777, true);
-			// 并发请求
-		    $guzzle = new guzzle();
-		    $guzzle->poolRequest('model_detail',$datas);
+			// 循环块级结果
+		    foreach ($datas as $data)
+		    {
+		    	$guzzle = new guzzle();
+		    	$guzzle->phantomjsDown('model_detail',$data);
+		    }
 		});
 
 
@@ -69,11 +41,131 @@ class fivestep{
 		    	// 判定是否已经存在且合法
 		    	if (file_exists($file))
 		    	{
-		    		// 字符编码转换
-					$html = mb_convert_encoding(file_get_contents($file),"UTF-8", "gb2312");
 
-		    		if($dom = HtmlDomParser::str_get_html($html))
+		    		if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
 					{
+						// 开启事务
+						Capsule::beginTransaction();
+
+						// 入库基本信息表
+						$temp = array(
+							'brand' => $data->brand,
+							'subbrand' => $data->subbrand,
+							'series' => $data->series,
+							'model' => $data->model,
+							'md5_url' => $data->md5_url
+						);
+
+
+						if($dom->find("#tr_0",0))
+						{
+							// 厂商
+						}
+						if($dom->find("#tr_1",0))
+						{
+							// 级别
+						}
+
+						if($dom->find("#tr_2",0))
+						{
+							// 能源类型
+							$temp['nengyuanleixing'] = $dom->find("#tr_2",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_3",0))
+						{
+							// 上市时间
+							$temp['shangshishijian'] = $dom->find("#tr_3",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_4",0))
+						{
+							// 最大功率（kw）
+							$temp['zuidagonglv'] = $dom->find("#tr_4",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_5",0))
+						{
+							// 最大扭矩（N·m）
+							$temp['zuidaniuju'] = $dom->find("#tr_5",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_6",0))
+						{
+							// 发动机
+							$temp['faodngji'] = $dom->find("#tr_6",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_7",0))
+						{
+							// 变速箱
+							$temp['biansuxiang'] = $dom->find("#tr_7",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_8",0))
+						{
+							// 长*宽*高
+							$temp['changkuangao'] = $dom->find("#tr_8",0)->children(1)->plaintext;
+						}
+						if($dom->find("#tr_9",0))
+						{
+							// 车身结构
+							$temp['cheshenjiegou'] = $dom->find("#tr_9",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_10",0))
+						{
+							// 最高车速
+							$temp['zuigaochesu'] = $dom->find("#tr_10",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_11",0))
+						{
+							// 官方0-100km/h加速(s)
+							$temp['guanfangjiasu'] = $dom->find("#tr_11",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_12",0))
+						{
+							// 实测0-100km/s加速
+							$temp['shicejiasu'] = $dom->find("#tr_12",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_13",0))
+						{
+							// 实测100km/s-o制动(m)
+							$temp['shicezhidong'] = $dom->find("#tr_13",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_14",0))
+						{
+							// 实测离地间隙（mm）
+							$temp['shicelidijianxi'] = $dom->find("#tr_14",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_15",0))
+						{
+							// 工信部综合油耗（L/100km）
+							$temp['gongxinbuyouhao'] = $dom->find("#tr_15",0)->children(1)->plaintext;
+						}
+						if($dom->find("#tr_16",0))
+						{
+							// 实测油耗(L/100km)
+							$temp['shiceyouhao'] = $dom->find("#tr_16",0)->children(1)->plaintext;
+						}
+
+						if($dom->find("#tr_16",0))
+						{
+							// 整车质保
+							$temp['zhengchezhibao'] = "";
+						}
+
+						print_r($temp);
+
+						Capsule::commit();
+
+						exit();
+
 			            // 更改SQL语句
 			            Capsule::table('model_detail')
 					            ->where('id', $data->id)
@@ -84,13 +176,5 @@ class fivestep{
 		    	}
 		    }
 		});
-
-
-		// 获取需要下载的页面
-		$wait = Capsule::table('model_detail')
-            ->where('status', 'wait')
-           	->count();
-        if($wait) echo "still have item of model_detail need to download ,sum : ".$wait."\r\n";
 	}
-
 }
