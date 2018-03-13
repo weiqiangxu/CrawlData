@@ -79,10 +79,10 @@ class onestep{
 
 
 
-		// car
-		if(!Capsule::schema()->hasTable('car'))
+		// car_basic
+		if(!Capsule::schema()->hasTable('car_basic'))
 		{
-			Capsule::schema()->create('car', function (Blueprint $table){
+			Capsule::schema()->create('car_basic', function (Blueprint $table){
 				$table->increments('id')->unique();
 				$table->string('md5_url')->unique()->comment('详情配置');
 
@@ -111,13 +111,14 @@ class onestep{
 				$table->string('zhengchezhibao')->nullable()->comment('整车质保');
 
 			});
-			echo "table car create".PHP_EOL;
+			echo "table car_basic create".PHP_EOL;
 		}
 
-		// car_one
-		if(!Capsule::schema()->hasTable('car_one'))
+		// car_body
+		if(!Capsule::schema()->hasTable('car_body'))
 		{
-			Capsule::schema()->create('car_one', function (Blueprint $table){
+			Capsule::schema()->create('car_body', function (Blueprint $table){
+
 				$table->integer('car_id')->unique();
 
 				$table->integer('cheshenchangdu')->nullable()->comment('车身长度');
@@ -134,10 +135,23 @@ class onestep{
 				$table->string('xinglixiangrongji')->nullable()->comment('车身行李箱容积(L)');
 				$table->string('zhengbeizhiliang')->nullable()->comment('车身整备质量(kg)');
 
+			});
+			echo "table car_body create".PHP_EOL;
+		}
+
+
+		// car_engine
+		if(!Capsule::schema()->hasTable('car_engine'))
+		{
+			Capsule::schema()->create('car_engine', function (Blueprint $table){
+
+				$table->integer('car_id')->unique();
+
 				$table->string('fadongjixinghao')->nullable()->comment('发动机型号');
 				$table->string('pailiangml')->nullable()->comment('发动机排量（ml）');
 				$table->string('pailiangl')->nullable()->comment('发动机排量（l）');
 				$table->string('jingqixingshi')->nullable()->comment('发动机进气形式');
+				$table->string('qigangpailiexingshi')->nullable()->comment('气缸排列形式');
 				$table->string('qigangshu')->nullable()->comment('发动机气缸数（个）');
 				$table->string('meigangqimenshu')->nullable()->comment('发动机每钢气门数（个）');
 				$table->string('yasuobi')->nullable()->comment('发动机压缩比');
@@ -156,15 +170,16 @@ class onestep{
 				$table->string('ganggaicailiao')->nullable()->comment('发动机缸盖材料(kg)');
 				$table->string('gangticailiao')->nullable()->comment('发动机缸体材料(L)');
 				$table->string('huanbaobiaozhun')->nullable()->comment('发动机环保标准(kg)');
-
 			});
-			echo "table car_one create".PHP_EOL;
+			echo "table car_engine create".PHP_EOL;
 		}
 
-		// car_two
-		if(!Capsule::schema()->hasTable('car_two'))
+
+		// 制动箱 and 底盘转向 车轮制动 and 主被动安全装 
+		if(!Capsule::schema()->hasTable('car_gearbox'))
 		{
-			Capsule::schema()->create('car_two', function (Blueprint $table){
+			Capsule::schema()->create('car_gearbox', function (Blueprint $table){
+
 				$table->integer('car_id')->unique();
 
 				$table->string('dangweigeshu')->nullable()->comment('变速箱档位个数');
@@ -184,6 +199,7 @@ class onestep{
 				$table->string('houluntaiguige')->nullable()->comment('车轮制动-后轮胎规格');
 				$table->string('beitaiguige')->nullable()->comment('车轮制动-备胎规格');
 
+
 				$table->string('zhufujiazuoanquanqinang')->nullable()->comment('主/被动安全设备-主/副驾驶座安全气囊');
 				$table->string('qianhoucepaiqinang')->nullable()->comment('主/被动安全设备-前后排侧气囊');
 				$table->string('qianhoupaitoubuqinang')->nullable()->comment('主/被动安全设备-前后排头部气囊(气帘)');
@@ -201,7 +217,18 @@ class onestep{
 				$table->string('chedaopianliyujing')->nullable()->comment('主/被动安全设备-车道偏离预警系统');
 				$table->string('zhubeidonganquanxitong')->nullable()->comment('主/被动安全设备-主动刹车/主动安全系统');
 				$table->string('yeshixitong')->nullable()->comment('主/被动安全设备-夜视系统');
-				$table->string('pilaijiashi')->nullable()->comment('主/被动安全设备-疲劳驾驶提示');
+				$table->string('pilaojiashi')->nullable()->comment('主/被动安全设备-疲劳驾驶提示');
+
+			});
+			echo "table car_gearbox create".PHP_EOL;
+		}
+
+		// 操控配置和防盗配置
+		if(!Capsule::schema()->hasTable('car_configure'))
+		{
+			Capsule::schema()->create('car_configure', function (Blueprint $table){
+
+				$table->integer('car_id')->unique();
 
 				$table->string('qianhouzhucheleida')->nullable()->comment('辅助/操控配置-前/后驻车雷达');
 				$table->string('daocheshipingyingxiang')->nullable()->comment('辅助/操控配置-倒车视频影像');
@@ -223,16 +250,6 @@ class onestep{
 				$table->string('houqiaochasuqi')->nullable()->comment('辅助/操控配置-后桥限滑差速器/差速锁');
 				$table->string('zhengchezhudongzhuanxiang')->nullable()->comment('辅助/操控配置-整车主动转向系统');
 
-			});
-			echo "table car_two create".PHP_EOL;
-		}
-
-		// car_three
-		if(!Capsule::schema()->hasTable('car_three'))
-		{
-			Capsule::schema()->create('car_three', function (Blueprint $table){
-				$table->integer('car_id')->unique();
-
 				$table->string('diandongtianchuang')->nullable()->comment('外部/防盗配置-电动天窗');
 				$table->string('quanjingtianchuang')->nullable()->comment('外部/防盗配置-全景天窗');
 				$table->string('duotianchuang')->nullable()->comment('外部/防盗配置-多天窗');
@@ -248,8 +265,8 @@ class onestep{
 				$table->string('yaokongyaoshi')->nullable()->comment('外部/防盗配置-遥控钥匙');
 				$table->string('wuyaoshiqidongxitong')->nullable()->comment('外部/防盗配置-无钥匙启动系统');
 				$table->string('wuyaoshijinruxitong')->nullable()->comment('外部/防盗配置-无钥匙进入系统');
-				$table->string('jinchengqidong')->nullable()->comment('外部/防盗配置-进程启动');
-
+				$table->string('yuanchengqidong')->nullable()->comment('外部/防盗配置-远程启动');
+				
 				$table->string('pizhifangxiangpan')->nullable()->comment('内部配置-皮质方向盘');
 				$table->string('fangxiangpantiaojie')->nullable()->comment('内部配置-方向盘调节');
 				$table->string('fangxiangpandiandong')->nullable()->comment('内部配置-方向盘电动调节');
@@ -263,6 +280,16 @@ class onestep{
 				$table->string('neizhixingchejiluyi')->nullable()->comment('内部配置-内置行车记录仪');
 				$table->string('zhudongjiangzao')->nullable()->comment('内部配置-主动降噪');
 				$table->string('shoujiwuxianchongdian')->nullable()->comment('内部配置-手机无线充电');
+
+			});
+			echo "table car_configure create".PHP_EOL;
+		}
+
+		// 座椅配置和多媒体配置
+		if(!Capsule::schema()->hasTable('car_chair'))
+		{
+			Capsule::schema()->create('car_chair', function (Blueprint $table){
+				$table->integer('car_id')->unique();
 
 				$table->string('zuoyicaizhi')->nullable()->comment('座椅配置-座椅材质');
 				$table->string('yundongfenggezuoyi')->nullable()->comment('座椅配置-运动风格座椅');
@@ -295,11 +322,21 @@ class onestep{
 				$table->string('chelianwang')->nullable()->comment('多媒体配置-车联网');
 				$table->string('chezaidianshi')->nullable()->comment('多媒体配置-车载电视');
 				$table->string('houpaiyejingping')->nullable()->comment('多媒体配置-后排液晶屏');
-				$table->string('dianhua')->nullable()->comment('多媒体配置-220V/230V电源');
+				$table->string('dianyuan')->nullable()->comment('多媒体配置-220V/230V电源');
 				$table->string('yinyuanjiekou')->nullable()->comment('多媒体配置-外接音源接口');
 				$table->string('cddvd')->nullable()->comment('多媒体配置-CD/DVD');
 				$table->string('yangshengqipinpai')->nullable()->comment('多媒体配置-扬声器品牌');
 				$table->string('yangshengqishuliang')->nullable()->comment('多媒体配置-扬声器数量');
+
+			});
+			echo "table car_chair create".PHP_EOL;
+		}
+
+		// 灯光配置和后视镜配置\空调冰箱配置
+		if(!Capsule::schema()->hasTable('car_lighting'))
+		{
+			Capsule::schema()->create('car_lighting', function (Blueprint $table){
+				$table->integer('car_id')->unique();
 
 				$table->string('jinguangdeng')->nullable()->comment('灯光配置-近光灯');
 				$table->string('yuanguangdeng')->nullable()->comment('灯光配置-远光灯');
@@ -334,14 +371,14 @@ class onestep{
 				$table->string('houpaidulikongtiao')->nullable()->comment('空调/冰箱-后排独立空调');
 				$table->string('houzuochufengkou')->nullable()->comment('空调/冰箱-后座出风口');
 				$table->string('wendufenqukongzhi')->nullable()->comment('空调/冰箱-温度分区控制');
-				$table->string('huafenguomin')->nullable()->comment('空调/冰箱-车内空气调节/花粉过敏');
+				$table->string('huafenguolv')->nullable()->comment('空调/冰箱-车内空气调节/花粉过滤');
 				$table->string('chezaikongqijinghuaqi')->nullable()->comment('空调/冰箱-车载空气净化器');
 				$table->string('chezaibingxiang')->nullable()->comment('空调/冰箱-车载冰箱');
 				$table->string('waiguanyanse')->nullable()->comment('空调/冰箱-外观颜色');
 				$table->string('neishiyanse')->nullable()->comment('空调/冰箱-内饰颜色');
 
 			});
-			echo "table car_three create".PHP_EOL;
+			echo "table car_lighting create".PHP_EOL;
 		}
 
 	}
