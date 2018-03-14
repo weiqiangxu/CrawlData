@@ -89,7 +89,7 @@ class onestep{
 				$table->string('brand')->nullable()->comment('品牌');
 				$table->string('subbrand')->nullable()->comment('子品牌');
 				$table->string('series')->nullable()->comment('车系');
-				$table->integer('model')->nullable()->comment('车型');
+				$table->string('model')->nullable()->comment('车型');
 
 				$table->string('changshang')->nullable()->comment('厂商');
 				$table->string('jibei')->nullable()->comment('级别');
@@ -121,12 +121,12 @@ class onestep{
 
 				$table->integer('car_id')->unique();
 
-				$table->integer('cheshenchangdu')->nullable()->comment('车身长度');
-				$table->integer('cheshenkuandu')->nullable()->comment('车身宽度');
-				$table->integer('cheshengaodu')->nullable()->comment('车身高度');
-				$table->integer('cheshenzhouju')->nullable()->comment('车身轴距（mm）');
-				$table->integer('cheshenqianlunju')->nullable()->comment('车身前轮距（mm）');
-				$table->integer('cheshenhoulunju')->nullable()->comment('车身后轮距（mm）');
+				$table->string('cheshenchangdu')->nullable()->comment('车身长度');
+				$table->string('cheshenkuandu')->nullable()->comment('车身宽度');
+				$table->string('cheshengaodu')->nullable()->comment('车身高度');
+				$table->string('cheshenzhouju')->nullable()->comment('车身轴距（mm）');
+				$table->string('cheshenqianlunju')->nullable()->comment('车身前轮距（mm）');
+				$table->string('cheshenhoulunju')->nullable()->comment('车身后轮距（mm）');
 				$table->string('cheshenzuixiaolidijianxi')->nullable()->comment('车身最小离地间隙（mm）');
 				$table->string('cheshencheshenjiegou')->nullable()->comment('车身结构');
 				$table->string('cheshenchemenshu')->nullable()->comment('车身车门数（个）');
