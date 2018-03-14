@@ -56,18 +56,19 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 
 		if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
 		{
-			// 开启事务
-			Capsule::beginTransaction();
 
-			$temp = array();
-			// 入库基本信息表
-			$temp = array(
-				'brand' => $data->brand,
-				'subbrand' => $data->subbrand,
-				'series' => $data->series,
-				'model' => $data->model,
-				'md5_url' => $data->md5_url
-			);
+		// 开启事务
+		Capsule::beginTransaction();
+
+		$temp = array();
+		// 入库基本信息表
+		$temp = array(
+			'brand' => $data->brand,
+			'subbrand' => $data->subbrand,
+			'series' => $data->series,
+			'model' => $data->model,
+			'md5_url' => $data->md5_url
+		);
 		// 厂商
 		if($dom->find("#tr_0",0)) $temp['changshang'] = $dom->find("#tr_0",0)->children(1)->find('div',0)->innertext;
 		// 级别
@@ -144,7 +145,7 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_30",0)) $temp['zhengbeizhiliang'] = $dom->find("#tr_30",0)->children(1)->plaintext;
 		// car_body
 		$empty = Capsule::table('car_body')->where('car_id',$car_id)->get()->isEmpty();
-		Capsule::table('car_body')->insert($temp);
+		Capsule::table('car_body')->insert(array_map('trim',$temp));
 
 
 		// 发动机信息
@@ -277,17 +278,20 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		Capsule::table('car_gearbox')->insert(array_map('trim',$temp));
 
 
-
 		// 操控配置和防盗配置car_configure
 		$temp = array('car_id' => $car_id);
 		// 前后驻车雷达
 		if($dom->find("#tr_218",0)) $temp['qianhouzhucheleida'] = $dom->find("#tr_218",0)->children(1)->find('div',0)->innertext;
 		// 方向盘调节
 		if($dom->find("#tr_254",0)) $temp['fangxiangpantiaojie'] = $dom->find("#tr_254",0)->children(1)->find('div',0)->innertext;
+		// 倒车视屏影像
+		if($dom->find("#tr_219",0)) $temp['daocheshipingyingxiang'] = $dom->find("#tr_219",0)->children(1)->find('div',0)->innertext;
+		// 可变转向化
+		if($dom->find("#tr_232",0)) $temp['kebianzhuanxianghua'] = $dom->find("#tr_232",0)->children(1)->find('div',0)->innertext;
+		// 无钥匙进入系统
+		if($dom->find("#tr_251",0)) $temp['wuyaoshijinruxitong'] = $dom->find("#tr_251",0)->children(1)->find('div',0)->innertext;
 
 		/*********************************************************************************************************/
-		// 倒车视屏影像
-		if($dom->find("#tr_219",0)) $temp['daocheshipingyingxiang'] = $dom->find("#tr_219",0)->children(1)->find('p',0)->plaintext;
 		// 全景摄像头
 		if($dom->find("#tr_220",0)) $temp['quanjingshexiangtou'] = $dom->find("#tr_220",0)->children(1)->plaintext;
 		// 低速巡航
@@ -312,8 +316,6 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_230",0)) $temp['kongqixuangua'] = $dom->find("#tr_230",0)->children(1)->plaintext;
 		// 电磁感应悬挂
 		if($dom->find("#tr_231",0)) $temp['dianciganyingxuangua'] = $dom->find("#tr_231",0)->children(1)->plaintext;
-		// 可变转向化
-		if($dom->find("#tr_232",0)) $temp['kebianzhuanxianghua'] = $dom->find("#tr_232",0)->children(1)->find('p',0)->plaintext;
 		// 前桥差速器
 		if($dom->find("#tr_233",0)) $temp['qianqiaochasuqi'] = $dom->find("#tr_233",0)->children(1)->plaintext;
 		// 中央差速器
@@ -350,11 +352,8 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_249",0)) $temp['yaokongyaoshi'] = $dom->find("#tr_249",0)->children(1)->plaintext;
 		// 无钥匙启动系统
 		if($dom->find("#tr_250",0)) $temp['wuyaoshiqidongxitong'] = $dom->find("#tr_250",0)->children(1)->plaintext;
-		// 无钥匙进入系统
-		if($dom->find("#tr_251",0)) $temp['wuyaoshijinruxitong'] = $dom->find("#tr_251",0)->find('p',0)->children(1)->plaintext;
 		// 远程启动
 		if($dom->find("#tr_252",0)) $temp['yuanchengqidong'] = $dom->find("#tr_252",0)->children(1)->plaintext;
-
 		// 皮质方向盘
 		if($dom->find("#tr_253",0)) $temp['pizhifangxiangpan'] = $dom->find("#tr_253",0)->children(1)->plaintext;
 		// 方向盘电动
@@ -381,7 +380,7 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_265",0)) $temp['shoujiwuxianchongdian'] = $dom->find("#tr_265",0)->children(1)->plaintext;
 						
 		$empty = Capsule::table('car_configure')->where('car_id',$car_id)->get()->isEmpty();
-		Capsule::table('car_configure')->insert($temp);
+		Capsule::table('car_configure')->insert(array_map('trim',$temp));
 
 
 		// 座椅配置和多媒体配置
@@ -392,14 +391,16 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_282",0)) $temp['houpaizuoyifangdaofangshi'] = $dom->find("#tr_282",0)->children(1)->find('div',0)->innertext;
 		// 前后中央扶手
 		if($dom->find("#tr_283",0)) $temp['qianhouzhongyangfushou'] = $dom->find("#tr_283",0)->children(1)->find('div',0)->innertext;
+		// 运动座椅风格
+		if($dom->find("#tr_267",0)) $temp['yundongfenggezuoyi'] = $dom->find("#tr_267",0)->children(1)->find('div',0)->innertext;
+		// 腰部支撑调节
+		if($dom->find("#tr_269",0)) $temp['yaobuzhichengtiaojie'] = $dom->find("#tr_269",0)->children(1)->find('div',0)->innertext;
+		// 手机互联映射
+		if($dom->find("#tr_292",0)) $temp['shoujihulianyingshe'] = $dom->find("#tr_292",0)->children(1)->find('div',0)->innertext;
 
 		/*********************************************************************************************************/
-		// 运动座椅风格
-		if($dom->find("#tr_267",0)) $temp['yundongfenggezuoyi'] = $dom->find("#tr_267",0)->children(1)->find('p',0)->plaintext;
 		// 座椅高低调节 
 		if($dom->find("#tr_268",0)) $temp['zuoyigaoditiaojie'] = $dom->find("#tr_268",0)->children(1)->plaintext;
-		// 腰部支撑调节
-		if($dom->find("#tr_269",0)) $temp['yaobuzhichengtiaojie'] = $dom->find("#tr_269",0)->children(1)->find('p',0)->plaintext;
 		// 肩部支撑调节
 		if($dom->find("#tr_270",0)) $temp['jianbuzhichengtiaojie'] = $dom->find("#tr_270",0)->children(1)->plaintext;
 		// 主副驾座电动调节
@@ -440,8 +441,6 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_290",0)) $temp['zhongkongyejingpingfenpingxianshi'] = $dom->find("#tr_290",0)->children(1)->plaintext;
 		// 蓝牙车载电话
 		if($dom->find("#tr_291",0)) $temp['lanyachezaidianhua'] = $dom->find("#tr_291",0)->children(1)->plaintext;
-		// 手机互联映射
-		if($dom->find("#tr_292",0)) $temp['shoujihulianyingshe'] = $dom->find("#tr_292",0)->children(1)->find('p',0)->plaintext;
 		// 车联网
 		if($dom->find("#tr_293",0)) $temp['chelianwang'] = $dom->find("#tr_293",0)->children(1)->plaintext;
 		// 车载电视
@@ -460,23 +459,25 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_300",0)) $temp['yangshengqishuliang'] = $dom->find("#tr_300",0)->children(1)->plaintext;
 
 		$empty = Capsule::table('car_chair')->where('car_id',$car_id)->get()->isEmpty();
-		Capsule::table('car_chair')->insert($temp);
+		Capsule::table('car_chair')->insert(array_map('trim',$temp));
 
-		
-
-
+	
 
 		$temp = array('car_id' => $car_id);
 		// 近光灯
-		if($dom->find("#tr_301",0)) { }
+		if($dom->find("#tr_301",0)) $temp['jinguangdeng'] = $dom->find("#tr_301",0)->children(1)->find('div',0)->innertext;
 		// 远光灯
-		if($dom->find("#tr_302",0)) { }
+		if($dom->find("#tr_302",0)) $temp['yuanguangdeng'] = $dom->find("#tr_302",0)->children(1)->find('div',0)->innertext;
 		// 前后电动车窗
-		if($dom->find("#tr_312",0)) { }
+		if($dom->find("#tr_312",0)) $temp['qianhoudiandongchechuang'] = $dom->find("#tr_312",0)->children(1)->find('div',0)->innertext;
 		// 外观颜色
-		if($dom->find("#tr_2003",0)) { }
+		if($dom->find("#tr_2003",0)) $temp['waiguanyanse'] = $dom->find("#tr_2004",0)->children(1)->find('div',0)->innertext;
 		// 内饰颜色
-		if($dom->find("#tr_2004",0)) { }
+		if($dom->find("#tr_2004",0)) $temp['neishiyanse'] = $dom->find("#tr_2004",0)->children(1)->find('div',0)->innertext;
+		// 防紫外线/隔热玻璃
+		if($dom->find("#tr_315",0)) $temp['fangziwaixiangereboli'] = $dom->find("#tr_315",0)->children(1)->find('div',0)->innertext;
+
+		/*********************************************************************************************************/
 		// 日间行车灯
 		if($dom->find("#tr_303",0)) $temp['rijianxingchedeng'] = $dom->find("#tr_303",0)->children(1)->plaintext;
 		// 自适应远近光
@@ -499,8 +500,6 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_313",0)) $temp['chechuangyijianshengjiang'] = $dom->find("#tr_313",0)->children(1)->plaintext;
 		// 车窗防夹手功能
 		if($dom->find("#tr_314",0)) $temp['chechuangfangjiashou'] = $dom->find("#tr_314",0)->children(1)->plaintext;
-		// 防紫外线/隔热玻璃
-		if($dom->find("#tr_315",0)) $temp['fangziwaixiangereboli'] = $dom->find("#tr_315",0)->children(1)->find('p',0)->plaintext;
 		// 后视镜自动调节
 		if($dom->find("#tr_316",0)) $temp['houshijingzidongtiaojie'] = $dom->find("#tr_316",0)->children(1)->plaintext;
 		// 后视镜加热
@@ -541,10 +540,10 @@ Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chun
 		if($dom->find("#tr_334",0)) $temp['chezaibingxiang'] = $dom->find("#tr_334",0)->children(1)->plaintext;
 
 		$empty = Capsule::table('car_lighting')->where('car_id',$car_id)->get()->isEmpty();
-		Capsule::table('car_lighting')->insert($temp);
-
+		Capsule::table('car_lighting')->insert(array_map('trim',$temp));
 
 		Capsule::commit();
+
         // 更改SQL语句
         Capsule::table('model_detail')->where('id', $data->id)->update(['status' =>'readed']);
 	    // 命令行执行时候不需要经过apache直接输出在窗口
