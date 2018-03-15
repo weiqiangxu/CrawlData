@@ -84,7 +84,8 @@ class onestep{
 		{
 			Capsule::schema()->create('car_basic', function (Blueprint $table){
 				$table->increments('id')->unique();
-				$table->string('md5_url')->unique()->comment('详情配置');
+				$table->string('url')->nullable()->comment('url');
+				$table->string('md5_url')->unique()->comment('md5_url');
 
 				$table->string('brand')->nullable()->comment('品牌');
 				$table->string('subbrand')->nullable()->comment('子品牌');
@@ -354,7 +355,7 @@ class onestep{
 				$table->string('chechuangyijianshengjiang')->nullable()->comment('玻璃/后视镜-车窗一键升降');
 				$table->string('chechuangfangjiashou')->nullable()->comment('玻璃/后视镜-车窗防夹手功能');
 				$table->string('fangziwaixiangereboli')->nullable()->comment('玻璃/后视镜-防紫外线/隔热玻璃');
-				$table->string('houshijingzidongtiaojie')->nullable()->comment('玻璃/后视镜-后视镜自动调节');
+				$table->string('houshijingdiandongtiaojie')->nullable()->comment('玻璃/后视镜-后视镜电动调节');
 				$table->string('houshijingjiare')->nullable()->comment('玻璃/后视镜-后视镜加热');
 				$table->string('houshijingzidongfangxuanmu')->nullable()->comment('玻璃/后视镜-内/外后视镜自动防眩目');
 				$table->string('liumeiticheneihoushijing')->nullable()->comment('玻璃/后视镜-流媒体车内后视镜');
