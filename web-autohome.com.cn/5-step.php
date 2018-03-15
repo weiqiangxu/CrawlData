@@ -9,5 +9,8 @@ require_once('./lib/fivestep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
 
-// 获取所有列表页
-fivestep::car();
+// 下载
+// fivestep::car_down();
+
+// 分析
+fivestep::car_analyse();
