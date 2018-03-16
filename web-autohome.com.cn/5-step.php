@@ -10,7 +10,7 @@ require_once('./lib/fivestep.php');
 require_once('./lib/guzzle.php');
 
 // 下载
-// fivestep::car_down();
+fivestep::car_down();
 
 // 分析
 fivestep::car_analyse();
