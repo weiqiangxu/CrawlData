@@ -41,74 +41,117 @@ class fivestep{
 		    	$file = PROJECT_APP_DOWN.'model_detail/'.$data->id.'.html';
 
 				//获取输出className的script代码
-				preg_match_all('/<script>(.*?)<\/script>/', file_get_contents($file), $matches);
-				// 打印classname =》 txt
-				$res = '$InsertRule$($index$, $item$){ console.log("\""+$GetClassName$($index$)+"\":\""+$item$+"\",");';
-				$str = preg_replace('/\$InsertRule\$\s+\(\$index\$,\s+\$item\$\)\s*{/',$res,current($matches[1]));
-				file_put_contents(PROJECT_APP_DOWN.'javascript.js', $str.' phantom.exit();');
-		
-				exec(APP_PATH.'/bin/phantomjs '.PROJECT_APP_DOWN.'javascript.js > '.PROJECT_APP_DOWN.'javascript.txt', $out, $status);
+				preg_match_all('/<script>(.*?)<\/script>/s', file_get_contents($file), $matches);
 				
-				$res = json_decode('{'.preg_replace('/,\s+$/', ' ', file_get_contents(PROJECT_APP_DOWN.'javascript.txt')).'}',true);
-				// 去除类名的.
 				$class = array();
-				foreach ($res as $k => $v) {
-					$class['<span class=\''.ltrim($k,'.').'\'></span>'] = $v;
+				$console = '$InsertRule$($index$, $item$){ console.log("\""+$GetClassName$($index$)+"\":\""+$item$+"\",");';
+				// 循环每一段JavaScript代码并执行并获取结果
+				foreach ($matches[1] as $v)
+				{
+					if(!strpos($v, 'InsertRule')) continue;
+					// 加入console
+					$str = preg_replace('/\$InsertRule\$\s+\(\$index\$,\s+\$item\$\)\s*{/',$console,$v);
+					// 加入exit
+					file_put_contents(PROJECT_APP_DOWN.'javascript.js', $str.' phantom.exit();');
+					// 命令执行
+					exec(APP_PATH.'/bin/phantomjs '.PROJECT_APP_DOWN.'javascript.js > '.PROJECT_APP_DOWN.'javascript.txt', $out, $status);
+					// 读取文件并拼接为json
+					$res = json_decode('{'.preg_replace('/,\s+$/', ' ', file_get_contents(PROJECT_APP_DOWN.'javascript.txt')).'}',true);
+					// 去除类名的.
+					foreach ($res as $k => $v) { $class[ltrim($k,'.')] = $v; }
 				}
-				print_r($class);
 
 				// keyLink
 				preg_match_all('/var\s*keyLink\s*=(.*?});/', file_get_contents($file), $matches);
 				$keyLink = json_decode(current($matches[1]),true);
-				
+				$newKeyLink = array();
+				foreach ($keyLink['result']['items'] as $k => $v)
+				{
+					$newKeyLink[$v['id']] = $v['name'];
+				}
+				$keyLink = array();
+				$config = array();
+				foreach ($newKeyLink as $k => $v) {
+					$vvv = '';
+					foreach ($class as $kk => $vv) {
+	    				if($vvv!='') $v=$vvv;
+	    				$vvv = preg_replace("/<span\s*class='".$kk."'><\/span>/",$vv,$v);
+	    			}
+	    			$keyLink[$k] = $vvv; 
+    			}
+
+
 				// config
 				preg_match_all('/var\s*config\s*=(.*?});/', file_get_contents($file), $matches);
 				$config = json_decode(current($matches[1]),true);
-				
+				$newConfig = array();
+				foreach ($config['result']['paramtypeitems'] as $k => $v) {
+					foreach ($v['paramitems'] as $kk => $vv) {
+						$newConfig[$vv['name']] = $vv['valueitems'][0]['value'];
+					}
+				}
+
+				// 替换
+				$config = array();
+				foreach ($newConfig as $k => $v) {
+					$kkk = '';
+					$vvv = '';
+					foreach ($class as $kk => $vv) {
+	    				// 分别替换健名和键值对应的类名
+	    				if($kkk!='') $k=$kkk;if($vvv!='') $v=$vvv;
+						$kkk = preg_replace("/<span\s*class='".$kk."'><\/span>/",$vv,$k);
+	    				$vvv = preg_replace("/<span\s*class='".$kk."'><\/span>/",$vv,$v);
+	    			}
+	    			$config[$kkk] = $vvv; 
+    			}
+
+
 				// option
 				preg_match_all('/var\s*option\s*=(.*?});/', file_get_contents($file), $matches);
 				$option = json_decode(current($matches[1]),true);
+				$newOption = array();
+				foreach ($option['result']['configtypeitems'] as $k => $v)
+				{
+					foreach ($v['configitems'] as $kk => $vv) {
+						$newOption[$vv['name']] = $vv['valueitems'][0]['value'];
+					}
+				}
+				// 替换
+				$option = array();
+				foreach ($newOption as $k => $v) {
+					$kkk = '';
+					$vvv = '';
+					foreach ($class as $kk => $vv) {
+	    				// 分别替换健名和键值对应的类名
+	    				if($kkk!='') $k=$kkk;if($vvv!='') $v=$vvv;
+						$kkk = preg_replace("/<span\s*class='".$kk."'><\/span>/",$vv,$k);
+	    				$vvv = preg_replace("/<span\s*class='".$kk."'><\/span>/",$vv,$v);
+	    			}
+	    			$option[$kkk] = $vvv; 
+    			}
 
 				// color
 				preg_match_all('/var\s*color\s*=(.*?});/', file_get_contents($file), $matches);
 				$color = json_decode(current($matches[1]),true);
-
+				$newColor = implode(',',array_column($color['result']['specitems'][0]['coloritems'], 'name'));
+				$newColor = ['外观颜色'=>$newColor];
 				// innerColor
 				preg_match_all('/var\s*innerColor\s*=(.*?});/', file_get_contents($file), $matches);
 				$innerColor = json_decode(current($matches[1]),true);
+				$newInnerColor = implode(',',array_column($innerColor['result']['specitems'][0]['coloritems'],'name')) ;
+				$newInnerColor = ['内饰颜色' => $newInnerColor]; 
+
+				// 拼接所有数组
+				$data = array_merge($keyLink,$config,$option,$newColor,$newInnerColor);
+
+
+				print_r($data);die;
 
 		    	// 是否存在
 		    	if (file_exists($file))
 		    	{
-		    		$newConfig = array();
-		    		foreach ($config['result']['paramtypeitems'][0]['paramitems'] as $k => $v)
-		    		{
-		    			$newConfig[$v['name']] = $v['valueitems'][0]['value'];
-		    		}
-		    		// 将类之中的替换成文字
-		    		$config = array();
-		    		foreach ($newConfig as $k => $v) {
-		    			foreach ($class as $kk => $vv) {
-		    				// 分别替换健名和键值对应的类名
-		    				$config[str_replace($kk, $vv, $k)] = str_replace($kk, $vv, $v);
-		    			}
-		    		}
-		    		print_r($config);die;
-		    		echo 'get it';die;
-
-
-
-
-
-
-
-
-
-
-
 					if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
 					{
-
 						// 开启事务
 						Capsule::beginTransaction();
 
