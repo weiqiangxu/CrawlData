@@ -113,13 +113,21 @@ class fivestep{
 				// color
 				preg_match_all('/var\s*color\s*=(.*?});/', file_get_contents($file), $matches);
 				$color = json_decode(current($matches[1]),true);
-				$newColor = implode(',',array_column($color['result']['specitems'][0]['coloritems'], 'name'));
-				$newColor = ['外观颜色'=>$newColor];
+				$newColor = array();
+				if(isset($color['result']['specitems'][0]['coloritems']))
+				{
+					$newColor = implode(',',array_column($color['result']['specitems'][0]['coloritems'], 'name'));
+					$newColor = ['外观颜色'=>$newColor];
+				}
 				// innerColor
 				preg_match_all('/var\s*innerColor\s*=(.*?});/', file_get_contents($file), $matches);
 				$innerColor = json_decode(current($matches[1]),true);
-				$newInnerColor = implode(',',array_column($innerColor['result']['specitems'][0]['coloritems'],'name')) ;
-				$newInnerColor = ['内饰颜色' => $newInnerColor]; 
+				$newInnerColor = array();
+				if(isset($innerColor['result']['specitems'][0]['coloritems']))
+				{
+					$newInnerColor = implode(',',array_column($innerColor['result']['specitems'][0]['coloritems'],'name')) ;
+					$newInnerColor = ['内饰颜色' => $newInnerColor]; 
+				}
 
 				// 拼接所有数组
 				$test = array_merge($config,$option,$newColor,$newInnerColor);
