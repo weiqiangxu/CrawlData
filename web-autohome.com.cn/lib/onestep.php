@@ -77,6 +77,23 @@ class onestep{
 			echo "table model_detail create".PHP_EOL;
 		}
 
+		// raw_data
+		if(!Capsule::schema()->hasTable('raw_data'))
+		{
+			Capsule::schema()->create('raw_data', function (Blueprint $table){
+			    $table->increments('id')->unique();
+			    $table->string('md5_url')->unique();
+			    $table->text('url')->nullable();
+			    $table->string('status')->nullable();
+			    $table->string('brand')->nullable()->comment('品牌');
+			    $table->string('subbrand')->nullable()->comment('子品牌');
+			    $table->string('series')->nullable()->comment('车系');
+			    $table->string('model')->nullable()->comment('车型');
+			    $table->longText('data')->nullable()->comment('所有的json数据');
+			});
+			echo "table raw_data create".PHP_EOL;
+		}
+
 
 
 		// car_basic

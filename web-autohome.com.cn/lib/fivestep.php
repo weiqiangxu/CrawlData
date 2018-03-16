@@ -31,7 +31,6 @@ class fivestep{
 	// 分析
 	public static function car_analyse()
 	{
-
 		// 解析
 		Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chunk(10,function($datas){
 			// 循环块级结果
@@ -125,6 +124,27 @@ class fivestep{
 				// 拼接所有数组
 				$test = array_merge($config,$option,$newColor,$newInnerColor);
 
+				// 先存储于数据库之中-转json
+				$temp = array();
+
+				$temp = array(
+					'brand' => $data->brand,
+					'subbrand' => $data->subbrand,
+					'series' => $data->series,
+					'model' => $data->model,
+					'md5_url' => $data->md5_url,
+					'url' => $data->url,
+					'data' => json_encode($test)
+				);
+				// raw_data
+				$empty = Capsule::table('raw_data')->where('md5_url',$data->md5_url)->get()->isEmpty();
+				if($empty) $car_id = Capsule::table('raw_data')->insert($temp);
+				// 更新状态
+				Capsule::table('model_detail')->where('id', $data->id)->update(['status' =>'readed']);
+				// 命令行执行时候不需要经过apache直接输出在窗口
+				echo 'model_detail '.$data->id.'.html'."  analyse successful!".PHP_EOL; 
+
+				continue;
 
 		    	// 是否存在
 		    	if (file_exists($file))
@@ -247,7 +267,7 @@ class fivestep{
 						$temp['meigangqimenshu'] = isset($test['每缸气门数(个)'])?$test['每缸气门数(个)']:'';
 						// 压缩比
 						$temp['yasuobi'] = isset($test['压缩比'])?$test['压缩比']:'';
-						// 配气结构
+						// 配气机构
 						$temp['peiqijiegou'] = isset($test['配气机构'])?$test['配气机构']:'';
 						// 缸径
 						$temp['gangjing'] = isset($test['缸径(mm)'])?$test['缸径(mm)']:'';
