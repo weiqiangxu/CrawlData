@@ -42,38 +42,58 @@ class fivestep{
 
 				//获取输出className的script代码
 				preg_match_all('/<script>(.*?)<\/script>/', file_get_contents($file), $matches);
-				// 添加打印
-				$str = preg_replace('/\$InsertRule\$\s+\(\$index\$,\s+\$item\$\)\s*{/','$InsertRule$($index$, $item$){console.log($item$);',current($matches[1]));
+				// 打印classname =》 txt
+				$res = '$InsertRule$($index$, $item$){ console.log("\""+$GetClassName$($index$)+"\":\""+$item$+"\",");';
+				$str = preg_replace('/\$InsertRule\$\s+\(\$index\$,\s+\$item\$\)\s*{/',$res,current($matches[1]));
 				file_put_contents(PROJECT_APP_DOWN.'javascript.js', $str.' phantom.exit();');
-
+		
 				exec(APP_PATH.'/bin/phantomjs '.PROJECT_APP_DOWN.'javascript.js > '.PROJECT_APP_DOWN.'javascript.txt', $out, $status);
+				
+				$res = json_decode('{'.preg_replace('/,\s+$/', ' ', file_get_contents(PROJECT_APP_DOWN.'javascript.txt')).'}',true);
+				// 去除类名的.
+				$class = array();
+				foreach ($res as $k => $v) {
+					$class['<span class=\''.ltrim($k,'.').'\'></span>'] = $v;
+				}
+				print_r($class);
 
 				// keyLink
-				preg_match_all('/var\s*keyLink(.*?};)/', file_get_contents($file), $matches);
-				$keyLink = current($matches[0]);
-
+				preg_match_all('/var\s*keyLink\s*=(.*?});/', file_get_contents($file), $matches);
+				$keyLink = json_decode(current($matches[1]),true);
+				
 				// config
-				preg_match_all('/var\s*config(.*?};)/', file_get_contents($file), $matches);
-				$config = current($matches[0]);
+				preg_match_all('/var\s*config\s*=(.*?});/', file_get_contents($file), $matches);
+				$config = json_decode(current($matches[1]),true);
 				
 				// option
-				preg_match_all('/var\s*option(.*?};)/', file_get_contents($file), $matches);
-				$option = current($matches[0]);
+				preg_match_all('/var\s*option\s*=(.*?});/', file_get_contents($file), $matches);
+				$option = json_decode(current($matches[1]),true);
 
 				// color
-				preg_match_all('/var\s*color(.*?};)/', file_get_contents($file), $matches);
-				$color = current($matches[0]);
+				preg_match_all('/var\s*color\s*=(.*?});/', file_get_contents($file), $matches);
+				$color = json_decode(current($matches[1]),true);
 
 				// innerColor
-				preg_match_all('/var\s*innerColor(.*?};)/', file_get_contents($file), $matches);
-				$innerColor = current($matches[0]);
-
+				preg_match_all('/var\s*innerColor\s*=(.*?});/', file_get_contents($file), $matches);
+				$innerColor = json_decode(current($matches[1]),true);
 
 		    	// 是否存在
 		    	if (file_exists($file))
 		    	{
-
-
+		    		$newConfig = array();
+		    		foreach ($config['result']['paramtypeitems'][0]['paramitems'] as $k => $v)
+		    		{
+		    			$newConfig[$v['name']] = $v['valueitems'][0]['value'];
+		    		}
+		    		// 将类之中的替换成文字
+		    		$config = array();
+		    		foreach ($newConfig as $k => $v) {
+		    			foreach ($class as $kk => $vv) {
+		    				// 分别替换健名和键值对应的类名
+		    				$config[str_replace($kk, $vv, $k)] = str_replace($kk, $vv, $v);
+		    			}
+		    		}
+		    		print_r($config);die;
 		    		echo 'get it';die;
 
 
