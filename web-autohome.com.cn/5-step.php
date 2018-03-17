@@ -8,6 +8,8 @@ require_once('./lib/config.php');
 require_once('./lib/fivestep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
+// 多线程分析
+require_once('./lib/phan.php');
 
 // 下载
 fivestep::car_down();
