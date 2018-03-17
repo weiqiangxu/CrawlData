@@ -74,7 +74,6 @@ class phan extends Thread {
 		unlink(PROJECT_APP_DOWN.$data->id.'.js');
 		unlink(PROJECT_APP_DOWN.$data->id.'.txt');
 
-		echo 'catch class'.PHP_EOL;
 		// config
 		preg_match_all('/var\s*config\s*=(.*?});/', file_get_contents($file), $matches);
 		$config = json_decode(current($matches[1]),true);
@@ -101,7 +100,6 @@ class phan extends Thread {
 			$config[$kkk] = $vvv; 
 		}
 
-		echo 'catch config'.PHP_EOL;
 		// option
 		preg_match_all('/var\s*option\s*=(.*?});/', file_get_contents($file), $matches);
 		$option = json_decode(current($matches[1]),true);
@@ -125,7 +123,7 @@ class phan extends Thread {
 			}
 			$option[$kkk] = $vvv; 
 		}
-		echo 'catch option'.PHP_EOL;
+
 		// color
 		preg_match_all('/var\s*color\s*=(.*?});/', file_get_contents($file), $matches);
 		$color = json_decode(current($matches[1]),true);

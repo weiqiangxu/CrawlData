@@ -32,10 +32,10 @@ class fivestep{
 	public static function car_analyse()
 	{
 		// 解析
-		Capsule::table('model_detail')->where([['status','completed'],['reading','0']])->orderBy('id')->chunk(3,function($datas){
+		Capsule::table('model_detail')->where([['status','completed'],['reading','0']])->orderBy('id')->chunk(5,function($datas){
 
 			$phan = array();
-
+			$start = time();
 			foreach ($datas as $data)
 			{
 				$phan[] = new phan($data);
@@ -49,6 +49,7 @@ class fivestep{
 			foreach($phan as $v) {
 			    $v->join();
 			}
+			echo 'time: '.(time()-$start) .' second. '.PHP_EOL;
 		});
 	}
 }
