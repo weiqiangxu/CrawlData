@@ -32,7 +32,7 @@ class fivestep{
 	public static function car_analyse()
 	{
 		// 解析
-		Capsule::table('model_detail')->where([['status','completed'],['reading','0']])->orderBy('id')->chunk(5,function($datas){
+		Capsule::table('model_detail')->where([['status','completed'],['reading','0']])->orderBy('id')->chunk(3,function($datas){
 
 			$phan = array();
 
