@@ -10,10 +10,13 @@ require_once('./lib/sixstep.php');
 require_once('./lib/guzzle.php');
 
 // 分析获取建表语句
-sixstep::get();
+// sixstep::get();
 
 // 建表
-sixstep::initable();
+// sixstep::initable();
 
 // 分析
-sixstep::move();
+// sixstep::move();
+
+// 检测是否有js类名未转换
+sixstep::echoRejs();

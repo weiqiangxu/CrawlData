@@ -24,7 +24,7 @@ class sixstep{
 
 		while (!$empty) {
 
-			$datas = Capsule::table('raw_data')->where('status','wait')->limit(20)->get();
+			$datas = Capsule::table('raw_data')->where('status','wait')->limit(800)->get();
 			// json文件是否存在
 			if(!file_exists(PROJECT_APP_DOWN.'every_column.json')) 
 				file_put_contents(PROJECT_APP_DOWN.'every_column.json', json_encode([['my_test','1']]));
@@ -94,7 +94,6 @@ class sixstep{
 
 	   	// 输出建表语句
 	    echo $create_table_str;
-	    exit();
 
 	}
 
@@ -112,9 +111,8 @@ class sixstep{
 			    $table->string('brand')->nullable()->comment('品牌');
 			    $table->string('subbrand')->nullable()->comment('子品牌');
 			    $table->string('series')->nullable()->comment('车系');
-			    $table->string('model')->nullable()->comment('车型').$create_table_str;
+			    $table->string('model')->nullable()->comment('车型');
 			 	// 在这里接上上面获取的所有字段以及最大数量的建表语句
-
 			});
 			echo "table car create".PHP_EOL;
 		}
@@ -158,9 +156,57 @@ class sixstep{
 		    }
 		    // 校验是否为空
 			$empty = Capsule::table('raw_data')->where('status','wait')->get()->isEmpty();
-			
+		}
+	}
+
+
+
+	// 检测是否有js类名未转换
+	public static function echoRejs()
+	{
+		// $str = '36391,41103';
+		// $res = Capsule::table('raw_data')->where('id','in',$str)->get();
+		// $all_url = array();
+		// foreach ($res as $k => $v)
+		// {
+		// 	$all_url[] = $v->md5_url;
+		// }
+		// print_r($all_url);die;
+		// 获取中文对应列
+		$text_to_pinyin = json_decode(file_get_contents(PROJECT_APP_DOWN.'text_to_pinyin.json'),true);
+
+		$empty = Capsule::table('raw_data')->where('status','readed')->get()->isEmpty();
+
+		$all_id = array();
+
+		while (!$empty) {
+
+			$datas = Capsule::table('raw_data')->where('status','readed')->limit(500)->get();
+
+			// 循环块级结果
+		    foreach ($datas as $data)
+		    {
+		    	$json = json_decode($data->data,true);
+
+		    	foreach ($json as $k => $v) {
+		    		if(strpos($k,'class=') || strpos($k,'</span>') || strpos($v,'class=') || strpos($v,'</span>'))
+		    		{
+		    			echo $data->id.PHP_EOL;
+		    			$all_id[] = $data->id;
+		    			$all_url[] = $data->md5_url;
+		    		}
+		    	}
+				
+				// 更新状态
+				Capsule::table('raw_data')->where('id', $data->id)->update(['status' =>'charge']);
+				echo $data->id.PHP_EOL;
+		    }
+		    // 校验是否为空
+			$empty = Capsule::table('raw_data')->where('status','readed')->get()->isEmpty();
 		}
 
+		file_put_contents(PROJECT_APP_DOWN.'all_re_run_id.json', json_encode(array_unique($all_id)));
+		file_put_contents(PROJECT_APP_DOWN.'all_re_run_md5_urld.json', json_encode(array_unique($all_url)));
 	}
 
 }
