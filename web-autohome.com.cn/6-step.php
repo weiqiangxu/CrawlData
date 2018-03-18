@@ -9,6 +9,9 @@ require_once('./lib/sixstep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
 
+// 分析获取建表语句
+sixstep::get();
+
 // 建表
 sixstep::initable();
 
