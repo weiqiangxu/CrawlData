@@ -371,6 +371,7 @@ class sixstep{
 					'series' => $data->series,
 					'model' => $data->model,
 					'md5_url' => $data->md5_url,
+					'status' => 'wait',
 					'url' => $data->url,
 				);
 				// 拼接车型参数字段
@@ -394,16 +395,7 @@ class sixstep{
 
 	// 检测是否有js类名未转换
 	public static function echoRejs()
-	{
-		// $res = Capsule::table('raw_data') ->whereIn('id', [36391, 41103])->get();
-		// $all_url = array();
-		// $zz= array();
-		// foreach ($res as $k => $v)
-		// {
-		// 	$all_url[] = $v->md5_url;
-		// 	$zz[] = json_decode($v->data,true);
-		// }
-		
+	{		
 		// 获取中文对应列
 		$text_to_pinyin = json_decode(file_get_contents(PROJECT_APP_DOWN.'text_to_pinyin.json'),true);
 
@@ -428,7 +420,6 @@ class sixstep{
 		    			$all_url[] = $data->md5_url;
 		    		}
 		    	}
-				
 				// 更新状态
 				Capsule::table('raw_data')->where('id', $data->id)->update(['status' =>'charge']);
 				echo $data->id.PHP_EOL;
@@ -450,5 +441,79 @@ class sixstep{
 		$res = Capsule::table('car')->where('id',1500)->get();
 		print_r(current($res));die;
 	}
+
+
+	// 整理数据
+	public static function manage()
+	{
+
+		// 获取中文对应列
+		$text_to_pinyin = json_decode(file_get_contents(PROJECT_APP_DOWN.'text_to_pinyin.json'),true);
+		$pinyin_to_text = array_flip($text_to_pinyin);
+		// param
+		if(!Capsule::schema()->hasTable('param'))
+		{
+			Capsule::schema()->create('param', function (Blueprint $table){
+			    $table->increments('id')->unique();
+			    $table->string('model_detail_id')->integer()->comment('车型ID');
+			    $table->string('pram_cn')->string()->comment('参数中文名');
+			    $table->string('pram_en')->string()->comment('参数字段名');
+			    $table->string('pram_val')->string()->comment('参数值');
+			});
+			echo "table param create".PHP_EOL;
+		}
+
+		// 入库参数表
+		$empty = Capsule::table('car')->where('status','wait')->get()->isEmpty();
+
+		while (!$empty) {
+
+			$datas = Capsule::table('car')->where('status','wait')->limit(200)->get();
+
+			// 循环块级结果
+		    foreach ($datas as $data)
+		    {
+		    	// 获取当前车型ID
+		    	$model_detail = Capsule::table('model_detail')->where('md5_url',$data->md5_url)->get();
+		    	$model_detail = $model_detail[0];
+
+		    	$test = array();
+		    	// 过滤空值
+		    	foreach ($data as $k => $v) {
+		    		$test[$k] = $v;
+		    	}
+
+		    	$test = array_filter($test);
+
+		    	$temp = array();
+
+
+		    	foreach ($test as $k => $v) {
+		    		if(!empty($pinyin_to_text[$k]))
+		    		{
+			    		$temp[] = array(
+			    			// 车型ID
+			    			'model_detail_id' => $model_detail->id,
+			    			'pram_cn' => $pinyin_to_text[$k],
+			    			'pram_en' => $k,
+			    			'pram_val' => $v
+			    		);
+		    		}
+		    	}
+				// 入库
+				$empty = Capsule::table('param')->where('model_detail_id',$model_detail->id)->get()->isEmpty();
+				if($empty) Capsule::table('param')->insert($temp);
+				// 更新状态
+				Capsule::table('car')->where('id', $data->id)->update(['status' =>'done']);
+				// 输出
+				echo 'car '.$data->id."  done successful!".PHP_EOL;
+		    }
+		    // 校验是否为空
+			$empty = Capsule::table('car')->where('status','wait')->get()->isEmpty();
+		}
+
+	}
+
+
 
 }

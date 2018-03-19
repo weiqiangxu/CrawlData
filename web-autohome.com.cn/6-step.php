@@ -23,3 +23,7 @@ require_once('./lib/guzzle.php');
 
 // 最终数据检查
 // sixstep::check();
+
+
+// 整理数据
+sixstep::manage();
