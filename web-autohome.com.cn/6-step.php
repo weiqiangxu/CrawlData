@@ -15,8 +15,11 @@ require_once('./lib/guzzle.php');
 // 建表
 // sixstep::initable();
 
-// 分析
+// 转储数据
 // sixstep::move();
 
 // 检测是否有js类名未转换
-sixstep::echoRejs();
+// sixstep::echoRejs();
+
+// 最终数据检查
+// sixstep::check();
