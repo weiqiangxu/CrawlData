@@ -69,4 +69,49 @@ class onestep{
 	}
 	
 
+	// 剑桥大学
+	public static function jianqiao()
+	{
+		$res = json_decode(file_get_contents(__DIR__.'\jianqiao.json'), true);
+		$res = $res['data']; 
+		print_r($res);
+	}
+
+	// 牛津大学
+	public static function niujin()
+	{
+		$web = 'https://www.ox.ac.uk/admissions/graduate/courses/courses-a-z-listing?wssl=1#';
+		// 解析页面
+		$client = new Client();
+		$response = $client->get($web,['verify' => true]);
+		
+		@mkdir(PROJECT_APP_DOWN, 0777, true);
+		// 保存首页
+		file_put_contents(PROJECT_APP_DOWN.'niujin.html', $response->getBody());
+		// 创建dom对象
+		if($dom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.'niujin.html')))
+		{
+			foreach($dom->find('.view-content .course-listing') as $div)
+			{
+				$url = 'https://www.ox.ac.uk/'.$div->find('a',0)->href;
+				$des = trim($div->find('.course-department',0)->plaintext).' '.trim($div->find(".course-mode-of-study",0)->plaintext).' '.trim($div->find('.course-duration',0)->plaintext);
+			    // 存储
+			    $temp = [
+			    	'url' => $url,
+			    	'status' => 'wait',
+			    	'md5_url' => md5($url),
+			    	'title' => $div->find('.course-title',0)->plaintext,
+			    	'des' => $des
+			    ];
+
+			    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+			    // 入库
+			    if($empty) Capsule::table('info')->insert($temp);
+			}
+			echo 'niujin analyse completed!'.PHP_EOL;
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
+		}
+	}
+
 }

@@ -12,5 +12,9 @@ require_once('./lib/guzzle.php');
 // 获取所有的品牌
 onestep::initable();
 // 解析获取所有数据
-onestep::bris_ac_uk();
+// onestep::bris_ac_uk();
 
+// 剑桥
+// onestep::jianqiao();
+// 牛津
+// onestep::niujin();
