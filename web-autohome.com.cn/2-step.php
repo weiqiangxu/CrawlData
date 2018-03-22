@@ -9,5 +9,5 @@ require_once('./lib/twostep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
 
-// 对筛选条件拼接，直到每一个页面的shown数量小于100
+// 车系
 twostep::series();

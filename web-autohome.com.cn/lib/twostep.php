@@ -47,7 +47,6 @@ class twostep{
 					{
 						$prefix = 'https://car.autohome.com.cn';
 						$subbrand = '';
-						$series = '';
 						
 						foreach ($dom->find('.current dl',0)->children as $children)
 						{
@@ -58,11 +57,8 @@ class twostep{
 							}
 							if($children->tag == 'dd')
 							{
-
 								$url = $prefix.$children->find('a',0)->href;
-
 								preg_match('/\d+/', $children->find('em',0)->plaintext, $match);
-
 								// 存储
 							    $temp = [
 							    	'url' => $url,
@@ -73,21 +69,12 @@ class twostep{
 							    	'series' => trim(preg_replace('/\(\d+\)/','',$children->find('a',0)->plaintext)),
 							    	'series_num' => (int)current($match),
 							    ];
-
-								$empty = Capsule::table('brand')
-									->where('md5_url',md5($url))
-									->get()
-									->isEmpty();
-								if($empty)
-								{
-									Capsule::table('series')->insert($temp);				    	
-								}
+								$empty = Capsule::table('brand')->where('md5_url',md5($url))->get()->isEmpty();
+								if($empty) Capsule::table('series')->insert($temp);
 							}
 						}
 			            // 更改SQL语句
-			            Capsule::table('brand')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
+			            Capsule::table('brand')->where('id', $data->id)->update(['status' =>'readed']);
 					    // 命令行执行时候不需要经过apache直接输出在窗口
 			            echo 'brand '.$data->id.'.html'."  analyse successful!".PHP_EOL;
 					}

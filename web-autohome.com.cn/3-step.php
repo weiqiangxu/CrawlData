@@ -9,5 +9,5 @@ require_once('./lib/threestep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
 
-// 车型
+// 在售/停售/预售
 threestep::model_list();
