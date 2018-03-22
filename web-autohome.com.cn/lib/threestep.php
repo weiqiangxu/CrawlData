@@ -25,35 +25,23 @@ class threestep{
 		    $guzzle = new guzzle();
 		    $guzzle->poolRequest('series',$datas);
 		});
-
-		// 解析获取在售、即将出售、停售的url
+		// 解析
 		Capsule::table('series')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
-
 			$prefix = 'https://car.autohome.com.cn';
-
-			// 在售统统入库
 		    foreach ($datas as $data)
 		    {
-		    	// 解析页面
 		    	$file = PROJECT_APP_DOWN.'series/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
 		    	if (file_exists($file))
 		    	{
 		    		// 字符编码转换
 					$html = mb_convert_encoding(file_get_contents($file),"UTF-8", "gb2312");
-					// dom解析
 		    		if($dom = HtmlDomParser::str_get_html($html))
 					{
-								
 						// 获取在售、停售、即将销售的url
 						foreach ($dom->find(".border-t-no ul li") as $li)
 						{
-
 							// 过滤无效连接
-							if(!$li->find('a',0))
-							{
-								continue;
-							}
+							if(!$li->find('a',0)) continue;
 							// 获取所有链接
 							$url = $prefix.$li->find('a',0)->href;
 							// 存储
@@ -63,24 +51,15 @@ class threestep{
 						    	'md5_url' => md5($url),
 						    	'brand' => $data->brand,
 						    	'subbrand' => $data->subbrand,
-						    	'series' => $data->series
+						    	'series' => $data->series,
+						    	'onsell' => $li->find('a',0)->plaintext
 						    ];
-				
 						    // 入库
-							$empty = Capsule::table('model_list')
-								->where('md5_url',md5($url))
-								->get()
-								->isEmpty();
-							if($empty)
-							{
-								Capsule::table('model_list')->insert($temp);					    	
-							}
+							$empty = Capsule::table('model_list')->where('md5_url',md5($url))->get()->isEmpty();
+							if($empty) Capsule::table('model_list')->insert($temp);
 						}
 			            // 标记已读
-			            Capsule::table('series')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
+			            Capsule::table('series')->where('id', $data->id)->update(['status' =>'readed']);
 			            echo 'series '.$data->id.'.html'."  analyse successful!".PHP_EOL;
 					}
 		    	}

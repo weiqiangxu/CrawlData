@@ -12,5 +12,5 @@ require_once('./lib/guzzle.php');
 // 初始化所有表格
 onestep::initable();
 
-// 获取所有的品牌
+// 品牌
 onestep::brand();

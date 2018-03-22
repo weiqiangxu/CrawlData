@@ -27,20 +27,16 @@ class fivestep{
 		    $guzzle->poolRequest('model_detail',$datas);
 		});
 	}
-
 	// 分析
 	public static function car_analyse()
 	{
-		// 解析
-		Capsule::table('model_detail')->where([['status','completed'],['reading','0']])->orderBy('id')->chunk(5,function($datas){
-
+		Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chunk(1,function($datas){
 			$phan = array();
 			$start = time();
 			foreach ($datas as $data)
 			{
 				$phan[] = new phan($data);
 			}
-			
 			// 开始线程(调用start就会运行run方法)
 			foreach($phan as $v) {
 			    $v->start();
