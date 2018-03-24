@@ -10,7 +10,7 @@ require_once('./lib/onestep.php');
 require_once('./lib/guzzle.php');
 
 // 获取所有的品牌
-onestep::initable();
+// onestep::initable();
 // 解析获取所有数据
 // onestep::bris_ac_uk();
 
@@ -18,3 +18,39 @@ onestep::initable();
 // onestep::jianqiao();
 // 牛津
 // onestep::niujin();
+
+// 帝国理工
+// onestep::diguo();
+
+// lse
+// onestep::lse();
+
+// ucl
+// onestep::ucl();
+
+// Edinburgh
+// onestep::Edinburgh();
+
+// KCL
+// onestep::KCL();
+
+// Manchester
+// onestep::Manchester();
+
+// Bristol
+// onestep::Bristol();
+
+// Glasgow
+// onestep::Glasgow();
+
+// Warwick
+// onestep::Warwick();
+
+// Durham
+// onestep::Durham();
+
+// Sheffield
+// onestep::Sheffield();
+
+// Queenmary
+onestep::Queenmary();
