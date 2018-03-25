@@ -2443,150 +2443,71 @@ class onestep{
 	// Kent
 	public static function Kent()
 	{
-		$arr = ['masters'=>'https://www.kent.ac.uk/courses/postgraduate/search/','ma'=>'https://www.kent.ac.uk/courses/postgraduate/search/award/ma/','msc'=>'https://www.kent.ac.uk/courses/postgraduate/search/award/msc/','llm'=>'https://www.kent.ac.uk/courses/postgraduate/search/award/llm/','mphil'=>'https://www.kent.ac.uk/courses/postgraduate/search/award/mphil/'];
+		$html = file_get_contents(__DIR__.'/kent.html');
 		$web_name = 'Kent';
-		$base_url = 'https://www.kent.ac.uk';
-		foreach ($arr as $key=> $value) 
+
+		if($dom = HtmlDomParser::str_get_html($html))
 		{
-			if(!is_file(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html'))
+			// $base_url='www.ucl.ac.uk';
+			foreach($dom->find('.card-linked') as $card)
 			{
-				// 解析页面
-				$client = new Client();
-				$response = $client->get($value,['verify'=>false]);
-				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo 'download Kent successful!'.PHP_EOL;
-				// 保存首页
-				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
+
+				$temp = [
+					'title' => $card->find('a',1)->plaintext,
+					'url' => 'https://www.kent.ac.uk'.$card->find('a',1)->href,
+					'md5_url' => md5('https://www.kent.ac.uk'.$card->find('a',1)->href),
+					'des' => trim($card->find('.kf-pin',0)->plaintext),
+					'qualification' => trim($card->find('.kf-clock',0)->plaintext),
+					'status' => 'wait',
+					'web_name'=>$web_name
+				];
+				 // 入库
+			    $empty = Capsule::table('info')->where('md5_url',md5('https://www.kent.ac.uk'.$card->find('a',1)->href))->get()->isEmpty();
+			    if($empty) Capsule::table('info')->insert($temp);				
 			}
-			// 创建dom对象
-			if($dom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html')))
-			{
-				if($key=='masters')
-				{
-					foreach($dom->find('.az-list li') as $tr)
-					{
-						if($tr->find('a') && $url = $tr->find('a',0)->href)
-						{
-							$title = $tr->find('a',0)->plaintext;
-						    $temp = [
-						    	'url' => $base_url.$url,
-						    	'status' => 'wait',
-						    	'md5_url' => md5($base_url.$url),
-						    	'title' => $title,
-						    	'des' => $key,
-						    	'web_name'=>$web_name
-						    ];
-						    // 入库
-						    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
-						    if($empty) Capsule::table('info')->insert($temp);
-						}
-					}
-				}
-				else
-				{
-					foreach($dom->find('.medium-pull-1 li') as $tr)
-					{
-						if($tr->find('a') && $url = $tr->find('a',0)->href)
-						{
-							if(!preg_match('/(http:\/\/)|(https:\/\/)/i', $url))
-							{
-								$url = $base_url.$url;
-							}
-							$title = $tr->find('a',0)->plaintext;
-							if(!is_file(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$title.'.html'))
-							{
-								// 解析页面
-								$client = new Client();
-								$response = $client->get($url,['verify'=>false]);
-								@mkdir(PROJECT_APP_DOWN.$web_name.'_'.$key, 0777, true);
-								echo 'download Kent successful!'.PHP_EOL;
-								// 保存首页
-								file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$title.'.html', $response->getBody());
-							}
-							// // 创建dom对象
-							if($sondom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$title.'.html')))
-							{
-								foreach($sondom->find('.medium-push-1 li') as $li)
-								{
-									if($li->find('a'))
-									{
-										$sonUrl = $url.$li->find('a',0)->href;
-										$title = $tr->find('a',0)->plaintext;
-									    $temp = [
-									    	'url' => $sonUrl,
-									    	'status' => 'wait',
-									    	'md5_url' => md5($sonUrl),
-									    	'title' => $title,
-									    	'des' => $key,
-									    	'web_name'=>$web_name
-									    ];
-									    // 入库
-									    $empty = Capsule::table('info')->where('md5_url',md5($sonUrl))->get()->isEmpty();
-									    if($empty) Capsule::table('info')->insert($temp);
-									}
-								}
-								$sondom->clear();
-							}
-						}
-					}
-				}
-				echo 'Stirling analyse completed!'.PHP_EOL;
-				// 清理内存防止内存泄漏
-				$dom-> clear(); 
-			}
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
 		}
+		echo 'Kent analyse completed!'.PHP_EOL;
 	}
+
+
+
 
 	// Bangor_University
 	public static function Bangor_University()
 	{
-		$web_name = 'Bangor_University';
-		if(!is_file(PROJECT_APP_DOWN.$web_name.'.html'))
-		{
-			$web = 'https://www.bangor.ac.uk/courses/postgraduate/';
-			// 解析页面
-			$client = new Client();
-			$response = $client->get($web,['verify'=>false]);
-			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo 'download Bangor_University successful!'.PHP_EOL;
-			// 保存首页
-			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
-		}
-		// 创建dom对象
-		if($dom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.$web_name.'.html')))
-		{
-			$base_url='https://www.bangor.ac.uk';
-			foreach($dom->find('#course-browse option') as $li)
+		for ($i=1; $i < 33 ; $i++)
+		{ 
+			$html = file_get_contents(__DIR__.'/bangor/'.$i.'.html');
+			$web_name = 'Bangor_University';
+			$prefix ='https://www.bangor.ac.uk';
+			if($dom = HtmlDomParser::str_get_html($html))
 			{
-				$val = $li->value;
-				$title = $li->plaintext;
-				if($val>0)
+				$temp = [];
+				// $base_url='www.ucl.ac.uk';
+				foreach($dom->find('h4') as $h)
 				{
-					if(!is_file(PROJECT_APP_DOWN.$web_name.'/'.$val.'.html'))
-					{
-						$web = 'https://www.bangor.ac.uk/common/course-search/pg.php.en';
-						// 解析页面
-						$client = new Client();
-						$response = $client->request('POST',$web, [
-									'Content-Length'=>'14',
-									'Cookie'=>"PHPSESSID=afnpvkj9vvt4h2pf53brind1j4; _ga=GA1.3.306510676.1521955602;_gid=GA1.3.1443050632.1521955602;_gali=course-browse; _gat=1",
-									'Referer'=> 'https://localhost',
-									'Origin'=>'https://www.bangor.ac.uk',
-									'term'=>'',
-								    'browse' => $val,
-								    'verify'=>false
-								]);
-						@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-						echo 'download Bangor_University successful!'.PHP_EOL;
-						// 保存首页
-						file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$val.'.html', $response->getBody());
-					}
+
+					$temp[] = [
+						'title' => $h->find('a',0)->plaintext,
+						'url' => $prefix.$h->find('a',0)->href,
+						'md5_url' => md5($prefix.$h->find('a',0)->href),
+						'status' => 'wait',
+						'web_name'=>$web_name
+					];
 				}
+				foreach($dom->find('p') as $k => $p)
+				{
+					$temp[$k-1]['des'] = $p->plaintext;
+				}
+				array_pop($temp);
+				Capsule::table('info')->insert($temp);
+				// 清理内存防止内存泄漏
+				$dom-> clear(); 
 			}
-			echo 'diguo analyse completed!'.PHP_EOL;
-			// 清理内存防止内存泄漏
-			$dom-> clear(); 
 		}
+		echo 'Bangor_University analyse completed!'.PHP_EOL;
 	}
 
 }
