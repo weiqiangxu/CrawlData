@@ -12,6 +12,9 @@ require_once('./lib/guzzle.php');
 // 初始化表
 onestep::initable();
 
+// Warwick
+onestep::Warwick();
+
 // bris_ac_uk
 onestep::bris_ac_uk();
 
@@ -43,9 +46,6 @@ onestep::Bristol();
 
 // Glasgow
 onestep::Glasgow();
-
-// Warwick
-onestep::Warwick();
 
 // Durham
 onestep::Durham();
@@ -132,5 +132,4 @@ onestep::Stirling();
 // onestep::Kent();
 
 //有问题的方法
-// Bangor_University
 // onestep::Bangor_University();

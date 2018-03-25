@@ -7,6 +7,9 @@ use Sunra\PhpSimple\HtmlDomParser;
 use Huluo\Extend\Gather;
 use Illuminate\Database\Schema\Blueprint;
 use GuzzleHttp\Client;
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 /**
   * 检测需要下载的批次并下载相应批次的列表页
   * @author xu
@@ -22,17 +25,17 @@ class onestep{
 			Capsule::schema()->create('info', function (Blueprint $table){
 			    $table->increments('id')->unique();
 			    $table->string('md5_url')->nullable();
-			    $table->text('url')->nullable();
+			    $table->text('url')->nullable()->comment('链接');
 			    $table->string('status')->nullable();
-			    $table->text('title')->nullable();
-			    $table->text('des')->nullable();
-			    $table->text('qualification')->nullable();
-			    $table->text('model')->nullable();
-			    $table->text('home')->nullable();
-			    $table->text('overseas')->nullable();
-			    $table->text('code')->nullable();
-			    $table->string('code_url')->nullable();
-			    $table->text('web_name')->nullable();
+			    $table->text('title')->nullable()->comment('标题');
+			    $table->text('des')->nullable()->comment('描述');
+			    $table->text('qualification')->nullable()->comment('资格');
+			    $table->text('model')->nullable()->comment('典型');
+			    $table->text('home')->nullable()->comment('家园');
+			    $table->text('overseas')->nullable()->comment('海外的');
+			    $table->text('code')->nullable('编码');
+			    $table->string('code_url')->nullable('编码链接');
+			    $table->text('web_name')->nullable('网站名称');
 			});
 			echo "table info create".PHP_EOL;
 		}
@@ -95,10 +98,9 @@ class onestep{
 			    	'overseas'=>$value['qualification_type'],
 			    	'web_name'=>$web_name
 			    ];
-		    Capsule::table('info')->insert($temp);
-		    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 		    // 入库
-		    // if($empty) Capsule::table('info')->insert($temp);
+		    $empty = Capsule::table('info')->where('md5_url',md5($value['prospectus_url']))->get()->isEmpty();
+		    if($empty) Capsule::table('info')->insert($temp);
 		}
 		echo 'jianqiao analyse completed!'.PHP_EOL;
 	}
@@ -108,14 +110,13 @@ class onestep{
 	{
 		$web_name = 'niujin';
 		// 解析页面
-		if(!is_file(PROJECT_APP_DOWN.$web_name.'.html'))
+		if(!file_exists(PROJECT_APP_DOWN.$web_name.'.html'))
 		{
 			// 解析页面
 			$web = 'https://www.ox.ac.uk/admissions/graduate/courses/courses-a-z-listing?wssl=1#';
 			$client = new Client();
 			$response = $client->get($web,['verify' => false]);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -127,30 +128,17 @@ class onestep{
 				$url = 'https://www.ox.ac.uk/'.$div->find('a',0)->href;
 				$des = trim($div->find('.course-department',0)->plaintext).' '.trim($div->find(".course-mode-of-study",0)->plaintext).' '.trim($div->find('.course-duration',0)->plaintext);
 			    // 存储
-			    $temp = [
-			    	'url' => $url,
-			    	'status' => 'wait',
-			    	'md5_url' => md5($url),
-			    	'title' => $div->find('.course-title',0)->plaintext,
-			    	'des' => $des
-			    ];
 			     $temp = [
 			    	'url' => $url,
 			    	'status' => 'wait',
 			    	'md5_url' => md5($url),
 			    	'title' => $div->find('.course-title',0)->plaintext,
 			    	'des' => $des,
-			    	// 'model'=>$value['taught_research_balance'],
-			    	// 'qualification'=>$value['qualification'],
-			    	// 'home'=>implode('/ ', $value['departments']),
-			    	// 'code'=>$value['code'],
-			    	// 'overseas'=>$value['qualification_type'],
 			    	'web_name'=>$web_name
 			    ];
-			    Capsule::table('info')->insert($temp);
-			    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 			    // 入库
-			    // if($empty) Capsule::table('info')->insert($temp);
+			    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+			    if($empty) Capsule::table('info')->insert($temp);
 			}
 			echo 'niujin analyse completed!'.PHP_EOL;
 			// 清理内存防止内存泄漏
@@ -169,7 +157,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download diguo completed!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -194,10 +182,9 @@ class onestep{
 				    	'model'=>str_replace('Mode of study:', '', $li->find('.type',2)->plaintext),
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    if($empty) Capsule::table('info')->insert($temp);
 					
 				}
 			}
@@ -218,7 +205,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download lse completed!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -241,9 +228,8 @@ class onestep{
 				    	'overseas'=>$tr->find('p',2)?str_replace('&nbsp;', '',$tr->find('p',2)->plaintext):'',
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 					
 			}
@@ -262,9 +248,8 @@ class onestep{
 				    	'overseas'=>$tr->find('p',2)?str_replace('&nbsp;', '',$tr->find('p',2)->plaintext):'',
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 			}
 			foreach($dom->find('.accordion',5)->find('tbody tr') as $tr)
@@ -282,9 +267,8 @@ class onestep{
 				    	'overseas'=>$tr->find('p',2)?str_replace('&nbsp;', '',$tr->find('p',2)->plaintext):'',
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 			}
 			echo 'lse analyse completed!'.PHP_EOL;
@@ -307,7 +291,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download ucl successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -330,9 +314,8 @@ class onestep{
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 						
 				}
@@ -354,7 +337,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web,['verify'=>false]);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Edinburgh successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -379,10 +362,9 @@ class onestep{
 				    	'model'=>'',
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 					
 				}
 			}
@@ -422,9 +404,8 @@ class onestep{
 			    	'model'=>trim('/ ',$model),
 			    	'web_name'=>$web_name
 			    ];
-			    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-			    // if($empty) Capsule::table('info')->insert($temp);
-			    Capsule::table('info')->insert($temp);
+			    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+			    if($empty) Capsule::table('info')->insert($temp);
 			}
 		}
 		echo 'kcl analyse completed!'.PHP_EOL;
@@ -446,7 +427,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Manchester completed!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -470,9 +451,8 @@ class onestep{
 				    	'web_name'=>$web_name
 				    ];
 				    // 入库
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom->clear(); 
@@ -492,7 +472,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Bristol completed!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -514,10 +494,9 @@ class onestep{
 			    	'model'=>$li->find('.prog-type',0)?$li->find('.prog-type',0)->plaintext:'',
 			    	'web_name'=>$web_name
 			    ];
-			    Capsule::table('info')->insert($temp);
-			    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 			    // 入库
-			    // if($empty) Capsule::table('info')->insert($temp);
+			    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+			    if($empty) Capsule::table('info')->insert($temp);
 			}
 			echo 'Bristol analyse completed!'.PHP_EOL;
 			// 清理内存防止内存泄漏
@@ -539,7 +518,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!';
+				echo 'download Glasgow successful!';
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -563,9 +542,8 @@ class onestep{
 				    	'web_name'=>$web_name
 				    ];
 				    // 入库
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				echo 'ucl analyse completed!'.PHP_EOL;
 				// 清理内存防止内存泄漏
@@ -574,18 +552,18 @@ class onestep{
 		}
 	}
 
-	// Warwick
+	// Warwick - 注意：这里教研ssl证书，请在phpini指定证书路径以及下载最新的证书
 	public static function Warwick()
 	{
 		$web_name = 'Warwick';
 		$web = 'https://warwick.ac.uk/study/postgraduate/courses-2018/';
-		if(!is_file(PROJECT_APP_DOWN.$web_name.'.html'))
+		if(!file_exists(PROJECT_APP_DOWN.$web_name.'.html'))
 		{
 			// 解析页面
 			$client = new Client();
 			$response = $client->get($web,['verify'=>false]);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Warwick completed!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -610,10 +588,9 @@ class onestep{
 				    	'model'=>'',
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 					
 				}
 			}
@@ -630,12 +607,13 @@ class onestep{
 					}
 					$title = $li->find('a',0)->plaintext;
 					if(!is_file(PROJECT_APP_DOWN.'/'.$web_name.'/'.$i.'.html'))
-					{
+					{	
+						echo $url.PHP_EOL;
 						// 解析页面
 						$client = new Client();
-						$response = $client->get($url,['verify'=>false]);
+						$response = $client->get($url);
 						@mkdir(PROJECT_APP_DOWN.'/'.$web_name, 0777, true);
-						echo '文件不存在====>获取文件!'.PHP_EOL;
+						echo 'download Warwick-1 successful!'.PHP_EOL;
 						// 保存首页
 						file_put_contents(PROJECT_APP_DOWN.'/'.$web_name.'/'.$i.'.html', $response->getBody());
 					}
@@ -654,14 +632,11 @@ class onestep{
 							    	'des' => $li->find('tr',1)->find('td',1)->find('p',1)->plaintext,
 							    	'qualification'=>$li->find('tr',1)->find('td',2)->find('p',1)->plaintext,
 							    	'model'=>$li->find('tr',2)->find('td',0)->find('p',1)->plaintext,
-							    	// 'Home/EU'=>$li->find('tr',2)->find('td',1)->find('p',0)->plaintext.'/'.$li->find('tr',2)->find('td',1)->find('p',0)->plaintext.$li->find('tr',2)->find('td',2)->plaintext,
-							    	// 'Overseas'=>
 							    	'web_name'=>$web_name
 							    ];
-							    Capsule::table('info')->insert($temp);
-							    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 							    // 入库
-							    // if($empty) Capsule::table('info')->insert($temp);
+							    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+							    if($empty) Capsule::table('info')->insert($temp);
 							}
 						}
 						// 清理内存防止内存泄漏
@@ -677,6 +652,7 @@ class onestep{
 	// Sheffield
 	public static function Durham()
 	{
+		echo 'downloading Durham!'.PHP_EOL;
 		$web_name = 'Durham';
 		$arr=['all'=>'https://www.dur.ac.uk/courses/all/#indexA','research'=>'https://www.dur.ac.uk/study/pg/studyoptions/research/'];
 		foreach ($arr as $key => $value) 
@@ -688,7 +664,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($web,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Durham successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -719,10 +695,9 @@ class onestep{
 							    	'model'=>$li->find('td',2)->plaintext,
 							    	'web_name'=>$web_name
 							    ];
-							    Capsule::table('info')->insert($temp);
-							    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 							    // 入库
-							    // if($empty) Capsule::table('info')->insert($temp);
+							    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+							    if($empty) Capsule::table('info')->insert($temp);
 							}
 							
 						}
@@ -747,10 +722,9 @@ class onestep{
 					    	'home'=>'research',
 					    	'web_name'=>$web_name
 					    ];
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 					    // 入库
-					    // if($empty) Capsule::table('info')->insert($temp);			
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    Capsule::table('info')->insert($temp);
 					}
 					
 				}
@@ -774,7 +748,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Sheffield successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -796,14 +770,11 @@ class onestep{
 						    	'md5_url' => md5($url),
 						    	'title' => $title,
 						    	'des' =>$key,
-						    	// 'qualification'=>$li->find('td',0)->plaintext,
-						    	// 'model'=>$li->find('td',2)->plaintext,
 						    	'web_name'=>$web_name
 						    ];
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 						    // 入库
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
 					}
 				}
@@ -824,15 +795,14 @@ class onestep{
 						    	'des'=>'research',
 						    	'web_name'=>$web_name
 						    ];
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 						    // 入库
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 					    }		
 					}
 					
 				}
-				echo 'diguo analyse completed!'.PHP_EOL;
+				echo 'Sheffield analyse completed!'.PHP_EOL;
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
 			}
@@ -842,6 +812,7 @@ class onestep{
 	// Queenmary
 	public static function Queenmary()
 	{
+		echo 'Queenmary downloading!'.PHP_EOL;
 		$web_name = 'Queenmary';
 		for ($i=0; $i < 27; $i++) 
 		{ 
@@ -852,7 +823,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($web);
 				@mkdir(PROJECT_APP_DOWN.'/'.$web_name.'one', 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Queenmary completed!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.'/'.$web_name.'one/'.$i.'.html', $response->getBody());
 			}
@@ -872,10 +843,9 @@ class onestep{
 				    	'des' =>$li->find('.result-subject',0)->plaintext ,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
@@ -903,10 +873,9 @@ class onestep{
 				    	'home'=>'research',
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);	
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
@@ -929,7 +898,7 @@ class onestep{
 				$client = new Client();
 					$response = $client->get($value,['verify'=>false]);
 					@mkdir(PROJECT_APP_DOWN, 0777, true);
-					echo '文件不存在====>获取文件!'.PHP_EOL;
+					echo 'download Exeter completed!'.PHP_EOL;
 					// 保存首页
 					file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -951,9 +920,8 @@ class onestep{
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);		
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				if($key=='degrees')
@@ -973,11 +941,9 @@ class onestep{
 						    	'web_name'=>$web_name
 						    ];
 						    // 入库
-						    Capsule::table('info')->insert($temp);
-							
+						    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				echo 'ucl analyse completed!'.PHP_EOL;
@@ -1001,7 +967,7 @@ class onestep{
 				$client = new Client();
 					$response = $client->get($value,['verify'=>false]);
 					@mkdir(PROJECT_APP_DOWN, 0777, true);
-					echo '文件不存在====>获取文件!'.PHP_EOL;
+					echo 'download Southampton successful!'.PHP_EOL;
 					// 保存首页
 					file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1027,9 +993,8 @@ class onestep{
 						    	'web_name'=>$web_name
 						    ];
 						    // 入库
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
 					}
 					echo 'Southamptontaught analyse completed!'.PHP_EOL;
@@ -1051,9 +1016,8 @@ class onestep{
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 					echo 'Southamptonresearch analyse completed!'.PHP_EOL;
 					// 清理内存防止内存泄漏
@@ -1078,7 +1042,7 @@ class onestep{
 				$client = new Client();
 					$response = $client->get($value,['verify'=>false]);
 					@mkdir(PROJECT_APP_DOWN, 0777, true);
-					echo '文件不存在====>获取文件!'.PHP_EOL;
+					echo 'download York successful!'.PHP_EOL;
 					// 保存首页
 					file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1106,9 +1070,8 @@ class onestep{
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				echo 'York analyse completed!'.PHP_EOL;
@@ -1133,7 +1096,7 @@ class onestep{
 				$client = new Client();
 					$response = $client->get($value,['verify'=>false]);
 					@mkdir(PROJECT_APP_DOWN, 0777, true);
-					echo '文件不存在====>获取文件!'.PHP_EOL;
+					echo 'download Leeds successful!'.PHP_EOL;
 					// 保存首页
 					file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1158,9 +1121,6 @@ class onestep{
 						    	'des' => $key,
 						    	'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
 						    	'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-						    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-						    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-						    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 						    	'web_name'=>$web_name
 						    ];
 						}
@@ -1172,18 +1132,12 @@ class onestep{
 						    	'md5_url' => md5($url),
 						    	'title' => $title,
 						    	'des' => $key,
-						    	// 'qualification'=>$tr->find('td',1)->find('span',0)->plaintext,
-						    	// 'model'=>$tr->find('.mode',0)?$tr->find('.mode',0)->plaintext:'',
-						    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-						    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-						    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 						    	'web_name'=>$web_name
 						    ];
 						}
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				echo 'Leeds analyse completed!'.PHP_EOL;
@@ -1215,7 +1169,7 @@ class onestep{
 						$client = new Client();
 						$response = $client->get($get_url,['verify' => false]);
 						@mkdir(PROJECT_APP_DOWN.$web_name.'_'.$key, 0777, true);
-						echo '文件不存在====>获取文件!'.PHP_EOL;
+						echo 'download Birmingham successful!'.PHP_EOL;
 						// 保存首页
 						file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$v.'.html', $response->getBody());
 					}
@@ -1237,14 +1191,11 @@ class onestep{
 							    	'qualification'=>$tr->find('td',1)->plaintext,
 							    	'model'=>$tr->find('td',3)->plaintext,
 							    	'home'=>$key,
-							    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-							    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 							    	'web_name'=>$web_name
 							    ];
 							    // 入库
-							    Capsule::table('info')->insert($temp);
-							    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-							    // if($empty) Capsule::table('info')->insert($temp);
+							    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+							    if($empty) Capsule::table('info')->insert($temp);
 							}
 						}
 						// 清理内存防止内存泄漏
@@ -1266,7 +1217,7 @@ class onestep{
 						$client = new Client();
 						$response = $client->get($get_url,['verify' => false]);
 						@mkdir(PROJECT_APP_DOWN.$web_name.'_'.$key, 0777, true);
-						echo '文件不存在====>获取文件!'.PHP_EOL;
+						echo 'download Birmingham successful!'.PHP_EOL;
 						// 保存首页
 						file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$v.'.html', $response->getBody());
 					}
@@ -1288,14 +1239,11 @@ class onestep{
 							    	'qualification'=>$tr->find('td',1)->plaintext,
 							    	'model'=>$tr->find('td',3)->plaintext,
 							    	'home'=>$key,
-							    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-							    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 							    	'web_name'=>$web_name
 							    ];
 							    // 入库
-							    Capsule::table('info')->insert($temp);
-							    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-							    // if($empty) Capsule::table('info')->insert($temp);
+							    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+							    if($empty) Capsule::table('info')->insert($temp);
 							}
 						}
 						// 清理内存防止内存泄漏
@@ -1321,7 +1269,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($get_url,['verify' => false]);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download St_Andrews successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -1342,7 +1290,7 @@ class onestep{
 					$client = new Client();
 					$response = $client->get($url,['verify' => false]);
 					@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-					echo '文件不存在====>获取文件!'.PHP_EOL;
+					echo 'download St_Andrews successful!'.PHP_EOL;
 					// 保存首页
 					file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$title.'.html', $response->getBody());
 				}
@@ -1367,10 +1315,9 @@ class onestep{
 							    	'code_url'=>$url,
 							    	'web_name'=>$web_name
 							    ];
-							    Capsule::table('info')->insert($temp);
-							    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 							    // // 入库
-							    // if($empty) Capsule::table('info')->insert($temp);
+							    $empty = Capsule::table('info')->where('md5_url',md5($sonurl))->get()->isEmpty();
+							    if($empty) Capsule::table('info')->insert($temp);
 						}
 						
 					}
@@ -1396,7 +1343,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($web,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Nottingham successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$value.'.html', $response->getBody());
 			}
@@ -1413,15 +1360,12 @@ class onestep{
 				    	'status' => 'wait',
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
-				    	// 'des' => $li->find('.prog-new',0)?$li->find('.prog-new',0)->plaintext:'',
-				    	// 'qualification'=>'',
 				    	'model'=>$value,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
@@ -1444,7 +1388,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Sussex successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1464,17 +1408,11 @@ class onestep{
 					    	'md5_url' => md5($url),
 					    	'title' => $title,
 					    	'des' => $key,
-					    	// 'qualification'=>$tr->find('.detail li',0)->plaintext,
-					    	// 'model'=>$tr->find('.detail li',1)->plaintext,
-					    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-					    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-					    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				// 清理内存防止内存泄漏
@@ -1495,7 +1433,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($base_url);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Lancaster successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -1513,15 +1451,11 @@ class onestep{
 				    	'status' => 'wait',
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
-				    	// 'des' => $li->find('.prog-new',0)?$li->find('.prog-new',0)->plaintext:'',
-				    	// 'qualification'=>'',
-				    	// 'model'=>$li->find('.prog-type',0)->plaintext,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 			}
 			echo 'Lancaster analyse completed!'.PHP_EOL;
@@ -1543,7 +1477,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($web,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Leicester successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$i.'.html', $response->getBody());
 			}
@@ -1560,14 +1494,11 @@ class onestep{
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
 				    	'des' => $li->find('p',1)->plaintext,
-				    	// 'qualification'=>'',
-				    	// 'model'=>$li->find('.prog-type',0)->plaintext,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
@@ -1590,7 +1521,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Cardiff successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1611,15 +1542,11 @@ class onestep{
 					    	'des' => $key,
 					    	'qualification'=>$tr->find('td',1)->plaintext,
 					    	'model'=>$tr->find('td',2)->plaintext,
-					    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-					    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-					    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				echo 'masters analyse completed!'.PHP_EOL;
@@ -1642,7 +1569,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($base_url);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Newcastle successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -1659,18 +1586,11 @@ class onestep{
 				    	'status' => 'wait',
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
-				    	// 'des' => $key,
-				    	// 'qualification'=>$tr->find('td',1)->plaintext,
-				    	// 'model'=>$tr->find('td',2)->plaintext,
-				    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-				    	// 'Overseas'=>$tr->find('.code a',0)->plaintext,
-				    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 				    	'web_name'=>$web_name
 				    ];
 				    // 入库
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 			}
 			echo 'masters analyse completed!'.PHP_EOL;
@@ -1693,7 +1613,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Liverpool successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1714,17 +1634,13 @@ class onestep{
 						    	'md5_url' => md5($url),
 						    	'title' => $title,
 						    	'des' => $key,
-						    	// 'qualification'=>$tr->find('td',1)->plaintext,
-						    	// 'model'=>$tr->find('td',2)->plaintext,
-						    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
 						    	'code'=>$tr->find('td',1)->find('a',0)->plaintext,
 						    	'code_url'=>$tr->find('td',1)->find('a',0)->href,
 						    	'web_name'=>$web_name
 						    ];
 						    // 入库
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
 					}
 					
@@ -1745,15 +1661,12 @@ class onestep{
 						    	'des' => $key,
 						    	'qualification'=>$tr->find('li',0)->find('span',0)->plaintext,
 						    	'model'=>$tr->find('li',1)->find('span',0)->plaintext,
-						    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
 						    	'overseas'=>$tr->find('li',2)?$tr->find('li',2)->plaintext:'',
-						    	// 'code_url'=>$base_url.$tr->find('.code a',0)->href,
 						    	'web_name'=>$web_name
 						    ];
 						    // 入库
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
 					}
 				}
@@ -1778,7 +1691,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Aberdeen successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -1798,15 +1711,11 @@ class onestep{
 					    	'des' => $key,
 					    	'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
 					    	'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-					    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-					    	// 'code'=>$tr->find('td',1)->find('a',0)->plaintext,
-					    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				echo 'Aberdeen analyse completed!'.PHP_EOL;
@@ -1830,7 +1739,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($web,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Dundee successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$i.'.html', $response->getBody());
 			}
@@ -1855,12 +1764,11 @@ class onestep{
 					    	'home'=>$li->find('li',3)?$li->find('li',3)->plaintext:'',
 					    	'web_name'=>$web_name
 					    ];
-					    Capsule::table('info')->insert($temp);
+				    	// 入库
+				    	$empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 						
 					}
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
@@ -1884,7 +1792,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($web,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download RHUL successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$value.'.html', $response->getBody());
 			}
@@ -1900,15 +1808,12 @@ class onestep{
 				    	'status' => 'wait',
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
-				    	// 'des' => $li->find('.prog-new',0)?$li->find('.prog-new',0)->plaintext:'',
-				    	// 'qualification'=>'',
 				    	'model'=>$value,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
@@ -1928,7 +1833,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Queen_belfast successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -1948,16 +1853,13 @@ class onestep{
 				    	'status' => 'wait',
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
-				    	// 'des' => $li->find('.dept',0)->plaintext,
 				    	'qualification'=>$li->find('td',0)->plaintext,
 				    	'model'=>$li->find('td',1)->plaintext,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
-					
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 				}
 			}
 			echo 'diguo analyse completed!'.PHP_EOL;
@@ -1977,7 +1879,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web,['verify'=>false]);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Reading successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -1997,15 +1899,11 @@ class onestep{
 				    	'status' => 'wait',
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
-				    	// 'des' => $li->find('.dept',0)->plaintext,
-				    	// 'qualification'=>$li->find('td',0)->plaintext,
-				    	// 'model'=>$li->find('td',1)->plaintext,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 					
 				}
 			}
@@ -2029,7 +1927,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Bath successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -2051,17 +1949,12 @@ class onestep{
 							    	'md5_url' => md5($url),
 							    	'title' => $title,
 							    	'des' => $tr->find('h1',0)->plaintext,
-							    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-							    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-							    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
 							    	'code'=>$key,
-							    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 							    	'web_name'=>$web_name
 							    ];
 							    // 入库
-							    Capsule::table('info')->insert($temp);
-							    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-							    // if($empty) Capsule::table('info')->insert($temp);
+							    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+							    if($empty) Capsule::table('info')->insert($temp);
 							}
 						}
 					}
@@ -2083,7 +1976,7 @@ class onestep{
 								$client = new Client();
 								$response = $client->get($url,['verify'=>false]);
 								@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-								echo '文件不存在====>获取文件!'.PHP_EOL;
+								echo 'download file successful!'.PHP_EOL;
 								// 保存首页
 								file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$i.'.html', $response->getBody());
 							}
@@ -2100,17 +1993,14 @@ class onestep{
 									    	'md5_url' => md5($sonurl),
 									    	'title' => $title,
 									    	'des' => $tr->find('font',-1)?trim($tr->find('font',-1)->plaintext,','):'',
-									    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
 									    	'model'=>$key,
-									    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
 									    	'code'=>$parTitle,
 									    	'code_url'=>$url,
 									    	'web_name'=>$web_name
 									    ];
 									    // 入库
-									    Capsule::table('info')->insert($temp);
-									    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-									    // if($empty) Capsule::table('info')->insert($temp);
+									$empty = Capsule::table('info')->where('md5_url',md5($sonurl))->get()->isEmpty();
+									if($empty) Capsule::table('info')->insert($temp);
 									}
 								}
 							}
@@ -2140,7 +2030,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Essex successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -2162,7 +2052,7 @@ class onestep{
 								$client = new Client();
 								$response = $client->get($base_url[$key].$url,['verify'=>false]);
 								@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-								echo '文件不存在====>获取文件!'.PHP_EOL;
+								echo 'download Essex successful!'.PHP_EOL;
 								// 保存首页
 								file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$i.'.html', $response->getBody());
 							}
@@ -2193,7 +2083,7 @@ class onestep{
 														$client = new Client();
 														$response = $client->get($getUrl,['verify'=>false]);
 														@mkdir(PROJECT_APP_DOWN.$web_name.'/'.$i, 0777, true);
-														echo '文件不存在====>获取文件!'.PHP_EOL;
+														echo 'download Essex successful!'.PHP_EOL;
 														// 保存首页
 														file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$i.'/'.$type[$str].'_'.$p.'.html', $response->getBody());
 													}
@@ -2211,17 +2101,15 @@ class onestep{
 															    	'md5_url' => md5($lasturl),
 															    	'title' => $lasttitle,
 															    	'des' => $str,
-															    	// 'qualification'=>$li->find('td',0)->plaintext,
 															    	'code'=>$ptitle,
 															    	'code_url'=>$base_url[$key].$url,
 															    	'model'=>$li->find('.info-box__item',0)->plaintext,
 															    	'home'=>$li->find('.info-box__item',1)->plaintext,
 															    	'web_name'=>$web_name
 															    ];
-															    Capsule::table('info')->insert($temp);
-															    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 															    // 入库
-															    // if($empty) Capsule::table('info')->insert($temp);
+															    $empty = Capsule::table('info')->where('md5_url',md5($lasturl))->get()->isEmpty();
+															    if($empty) Capsule::table('info')->insert($temp);
 																
 															}
 														}
@@ -2246,18 +2134,15 @@ class onestep{
 												    	'md5_url' => md5($lasturl),
 												    	'title' => $lasttitle,
 												    	'des' => $str,
-												    	// 'qualification'=>$li->find('td',0)->plaintext,
 												    	'code'=>$ptitle,
 												    	'code_url'=>$base_url[$key].$url,
 												    	'model'=>$li->find('.info-box__item',0)->plaintext,
 												    	'home'=>$li->find('.info-box__item',1)->plaintext,
 												    	'web_name'=>$web_name
 												    ];
-												    Capsule::table('info')->insert($temp);
-												    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 												    // 入库
-												    // if($empty) Capsule::table('info')->insert($temp);
-													
+												    $empty = Capsule::table('info')->where('md5_url',md5($lasturl))->get()->isEmpty();
+												    if($empty) Capsule::table('info')->insert($temp);
 												}
 												
 											}
@@ -2267,23 +2152,6 @@ class onestep{
 								}
 								$dom->clear();
 							}
-						    // $temp = [
-						    // 	'url' => $url,
-						    // 	'status' => 'wait',
-						    // 	'md5_url' => md5($url),
-						    // 	'title' => $title,
-						    // 	'des' => $key,
-						    // 	'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-						    // 	'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-						    // 	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-						    // 	// 'code'=>$tr->find('td',1)->find('a',0)->plaintext,
-						    // 	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
-						    // 	'web_name'=>$web_name
-						    // ];
-						    // // 入库
-						    // Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-						    // if($empty) Capsule::table('info')->insert($temp);
 						}
 						$i++;
 					}
@@ -2301,7 +2169,7 @@ class onestep{
 							$client = new Client();
 							$response = $client->get($getUrl,['verify'=>false]);
 							@mkdir(PROJECT_APP_DOWN.$web_name.'/'.$key, 0777, true);
-							echo '文件不存在====>获取文件!'.PHP_EOL;
+							echo 'download Essex-pgr successful!'.PHP_EOL;
 							// 保存首页
 							file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$key.'/'.$type.'.html', $response->getBody());
 						}
@@ -2350,16 +2218,6 @@ class onestep{
 		$base_url = 'http://www.swansea.ac.uk';
 		foreach ($arr as $key=> $value) 
 		{
-			// if(!is_file(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html'))
-			// {
-			// 	// 解析页面
-			// 	$client = new Client();
-			// 	$response = $client->get($value,['verify'=>false]);
-			// 	@mkdir(PROJECT_APP_DOWN, 0777, true);
-			// 	echo '文件不存在====>获取文件!'.PHP_EOL;
-			// 	// 保存首页
-			// 	file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
-			// }
 			// 创建dom对象
 			if($dom = HtmlDomParser::str_get_html(file_get_contents(__DIR__.'/'.$web_name.'_'.$key.'.php')))
 			{
@@ -2374,89 +2232,17 @@ class onestep{
 					    	'md5_url' => md5($url),
 					    	'title' => $title,
 					    	'des' => $key,
-					    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-					    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-					    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-					    	// 'code'=>$key,
-					    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				echo 'Swansea analyse completed!'.PHP_EOL;
 				// 清理内存防止内存泄漏
 				$dom-> clear(); 
 			}
-		}
-	}
-
-	// Bangor_University
-	public static function Bangor_University()
-	{
-		$web_name = 'Bangor_University';
-		if(!is_file(PROJECT_APP_DOWN.$web_name.'.html'))
-		{
-			$web = 'https://www.bangor.ac.uk/courses/postgraduate/';
-			// 解析页面
-			$client = new Client();
-			$response = $client->get($web,['verify'=>false]);
-			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
-			// 保存首页
-			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
-		}
-		// 创建dom对象
-		if($dom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.$web_name.'.html')))
-		{
-			$base_url='https://www.bangor.ac.uk';
-			foreach($dom->find('#course-browse option') as $li)
-			{
-				$val = $li->value;
-				$title = $li->plaintext;
-				if($val>0)
-				{
-					if(!is_file(PROJECT_APP_DOWN.$web_name.'/'.$val.'.html'))
-					{
-						$web = 'https://www.bangor.ac.uk/common/course-search/pg.php.en';
-						// 解析页面
-						$client = new Client();
-						$response = $client->request('POST',$web, [
-									'Content-Length'=>'14',
-									'Cookie'=>"PHPSESSID=afnpvkj9vvt4h2pf53brind1j4; _ga=GA1.3.306510676.1521955602;_gid=GA1.3.1443050632.1521955602;_gali=course-browse; _gat=1",
-									'Referer'=> 'https://localhost',
-									'Origin'=>'https://www.bangor.ac.uk',
-									'term'=>'',
-								    'browse' => $val,
-								    'verify'=>false
-								]);
-						@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
-						echo '文件不存在====>获取文件!'.PHP_EOL;
-						// 保存首页
-						file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$val.'.html', $response->getBody());
-					}
-				    // $temp = [
-				    // 	'url' => $base_url.$url,
-				    // 	'status' => 'wait',
-				    // 	'md5_url' => md5($url),
-				    // 	'title' => $title,
-				    // 	'des' => $li->find('.dept',0)->plaintext,
-				    // 	'qualification'=>str_replace('Qualification/s:', '', $li->find('.type',1)->plaintext),
-				    // 	'model'=>str_replace('Mode of study:', '', $li->find('.type',2)->plaintext),
-				    // 	'web_name'=>$web_name
-				    // ];
-				    // Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
-				}
-			}
-			echo 'diguo analyse completed!'.PHP_EOL;
-			// 清理内存防止内存泄漏
-			$dom-> clear(); 
 		}
 	}
 
@@ -2474,7 +2260,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Loughborough_University successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -2494,16 +2280,13 @@ class onestep{
 					    	'title' => $title,
 					    	'des' => $key,
 					    	'qualification'=>$tr->find('h2 em',0)?$tr->find('h2 em',0)->plaintext:'',
-					    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-					    	// 'home'=>$tr->find('.detail li',2)->plaintext,
 					    	'code'=>$base_url.$tr->find('h3 a',0)->plaintext,
 					    	'code_url'=>$base_url.$tr->find('h3 a',0)->href,
 					    	'web_name'=>$web_name
 					    ];
 					    // 入库
-					    Capsule::table('info')->insert($temp);
-					    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-					    // if($empty) Capsule::table('info')->insert($temp);
+					    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+					    if($empty) Capsule::table('info')->insert($temp);
 					}
 				}
 				// 清理内存防止内存泄漏
@@ -2524,7 +2307,7 @@ class onestep{
 			$client = new Client();
 			$response = $client->get($web,['verify'=>false]);
 			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo '文件不存在====>获取文件!'.PHP_EOL;
+			echo 'download Goldsmiths successful!'.PHP_EOL;
 			// 保存首页
 			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
 		}
@@ -2545,14 +2328,12 @@ class onestep{
 				    	'md5_url' => md5($url),
 				    	'title' => $title,
 				    	'des' => $li->find('p',0)->plaintext,
-				    	// 'qualification'=>str_replace('Qualification/s:', '', $li->find('.type',1)->plaintext),
 				    	'model'=>$li->find('li',0)->plaintext,
 				    	'web_name'=>$web_name
 				    ];
-				    Capsule::table('info')->insert($temp);
-				    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
 				    // 入库
-				    // if($empty) Capsule::table('info')->insert($temp);
+				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
 					
 				}
 			}
@@ -2576,7 +2357,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Stirling successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -2596,17 +2377,11 @@ class onestep{
 						    	'md5_url' => md5($base_url.$url),
 						    	'title' => $title,
 						    	'des' => $key,
-						    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-						    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-						    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-						    	// 'code'=>$key,
-						    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 						    	'web_name'=>$web_name
 						    ];
 						    // 入库
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
 					}
 				}
@@ -2627,7 +2402,7 @@ class onestep{
 								$client = new Client();
 								$response = $client->get($url,['verify'=>false]);
 								@mkdir(PROJECT_APP_DOWN.$web_name.'_'.$key, 0777, true);
-								echo '文件不存在====>获取文件!'.PHP_EOL;
+								echo 'download degrees successful!'.PHP_EOL;
 								// 保存首页
 								file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$title.'.html', $response->getBody());
 							}
@@ -2646,17 +2421,11 @@ class onestep{
 									    	'md5_url' => md5($sonUrl),
 									    	'title' => $title,
 									    	'des' => $key,
-									    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-									    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-									    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-									    	// 'code'=>$key,
-									    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 									    	'web_name'=>$web_name
 									    ];
 									    // 入库
-									    Capsule::table('info')->insert($temp);
-									    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-									    // if($empty) Capsule::table('info')->insert($temp);
+									    $empty = Capsule::table('info')->where('md5_url',md5($sonUrl))->get()->isEmpty();
+									    if($empty) Capsule::table('info')->insert($temp);
 									}
 								}
 								$sondom->clear();
@@ -2685,7 +2454,7 @@ class onestep{
 				$client = new Client();
 				$response = $client->get($value,['verify'=>false]);
 				@mkdir(PROJECT_APP_DOWN, 0777, true);
-				echo '文件不存在====>获取文件!'.PHP_EOL;
+				echo 'download Kent successful!'.PHP_EOL;
 				// 保存首页
 				file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'.html', $response->getBody());
 			}
@@ -2705,17 +2474,11 @@ class onestep{
 						    	'md5_url' => md5($base_url.$url),
 						    	'title' => $title,
 						    	'des' => $key,
-						    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-						    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-						    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-						    	// 'code'=>$key,
-						    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 						    	'web_name'=>$web_name
 						    ];
 						    // 入库
-						    Capsule::table('info')->insert($temp);
-						    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-						    // if($empty) Capsule::table('info')->insert($temp);
+						    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
+						    if($empty) Capsule::table('info')->insert($temp);
 						}
 					}
 				}
@@ -2736,7 +2499,7 @@ class onestep{
 								$client = new Client();
 								$response = $client->get($url,['verify'=>false]);
 								@mkdir(PROJECT_APP_DOWN.$web_name.'_'.$key, 0777, true);
-								echo '文件不存在====>获取文件!'.PHP_EOL;
+								echo 'download Kent successful!'.PHP_EOL;
 								// 保存首页
 								file_put_contents(PROJECT_APP_DOWN.$web_name.'_'.$key.'/'.$title.'.html', $response->getBody());
 							}
@@ -2755,17 +2518,11 @@ class onestep{
 									    	'md5_url' => md5($sonUrl),
 									    	'title' => $title,
 									    	'des' => $key,
-									    	// 'qualification'=>$tr->find('td',1)?$tr->find('td',1)->plaintext:'',
-									    	// 'model'=>$tr->find('td',2)?$tr->find('td',2)->plaintext:'',
-									    	// 'Home/EU'=>@$tr->find('.detail li',2)->plaintext,
-									    	// 'code'=>$key,
-									    	// 'code_url'=>$tr->find('td',1)->find('a',0)->href,
 									    	'web_name'=>$web_name
 									    ];
 									    // 入库
-									    Capsule::table('info')->insert($temp);
-									    // $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-									    // if($empty) Capsule::table('info')->insert($temp);
+									    $empty = Capsule::table('info')->where('md5_url',md5($sonUrl))->get()->isEmpty();
+									    if($empty) Capsule::table('info')->insert($temp);
 									}
 								}
 								$sondom->clear();
@@ -2779,4 +2536,57 @@ class onestep{
 			}
 		}
 	}
+
+	// Bangor_University
+	public static function Bangor_University()
+	{
+		$web_name = 'Bangor_University';
+		if(!is_file(PROJECT_APP_DOWN.$web_name.'.html'))
+		{
+			$web = 'https://www.bangor.ac.uk/courses/postgraduate/';
+			// 解析页面
+			$client = new Client();
+			$response = $client->get($web,['verify'=>false]);
+			@mkdir(PROJECT_APP_DOWN, 0777, true);
+			echo 'download Bangor_University successful!'.PHP_EOL;
+			// 保存首页
+			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
+		}
+		// 创建dom对象
+		if($dom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.$web_name.'.html')))
+		{
+			$base_url='https://www.bangor.ac.uk';
+			foreach($dom->find('#course-browse option') as $li)
+			{
+				$val = $li->value;
+				$title = $li->plaintext;
+				if($val>0)
+				{
+					if(!is_file(PROJECT_APP_DOWN.$web_name.'/'.$val.'.html'))
+					{
+						$web = 'https://www.bangor.ac.uk/common/course-search/pg.php.en';
+						// 解析页面
+						$client = new Client();
+						$response = $client->request('POST',$web, [
+									'Content-Length'=>'14',
+									'Cookie'=>"PHPSESSID=afnpvkj9vvt4h2pf53brind1j4; _ga=GA1.3.306510676.1521955602;_gid=GA1.3.1443050632.1521955602;_gali=course-browse; _gat=1",
+									'Referer'=> 'https://localhost',
+									'Origin'=>'https://www.bangor.ac.uk',
+									'term'=>'',
+								    'browse' => $val,
+								    'verify'=>false
+								]);
+						@mkdir(PROJECT_APP_DOWN.$web_name, 0777, true);
+						echo 'download Bangor_University successful!'.PHP_EOL;
+						// 保存首页
+						file_put_contents(PROJECT_APP_DOWN.$web_name.'/'.$val.'.html', $response->getBody());
+					}
+				}
+			}
+			echo 'diguo analyse completed!'.PHP_EOL;
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
+		}
+	}
+
 }
