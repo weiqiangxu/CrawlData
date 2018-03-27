@@ -1,56 +1,53 @@
 <?php
-// 引入数据库层
 use Illuminate\Database\Capsule\Manager as Capsule;
-// 解析HTML为DOM工具
 use Sunra\PhpSimple\HtmlDomParser;
-// 多进程下载器
 use Huluo\Extend\Gather;
 use Illuminate\Database\Schema\Blueprint;
 use GuzzleHttp\Client;
 /**
-  * 检测需要下载的批次并下载相应批次的列表页
   * @author xu
   * @copyright 2018/01/29
   */
 class onestep{
-	// 初始化所有数据表
+
+	// 初始化表
 	public static function initable()
 	{
-		// vin表
+		// vin
 		if(!Capsule::schema()->hasTable('vin'))
 		{
 			Capsule::schema()->create('vin', function (Blueprint $table){
 			    $table->increments('id')->unique();
-			    $table->string('md5_url')->unique();
-			    $table->text('url')->nullable();
+			    $table->string('url')->unique();
 			  	$table->string('status')->nullable(); 
 			});
 			echo "table vin create".PHP_EOL;
 		}
 
 
-		// ori_car表
-		if(!Capsule::schema()->hasTable('ori_car'))
+		// car_json
+		if(!Capsule::schema()->hasTable('car_json'))
 		{
-			Capsule::schema()->create('ori_car', function (Blueprint $table){
+			Capsule::schema()->create('car_json', function (Blueprint $table){
 			    $table->increments('id')->unique();
 			    $table->text('json')->nullable();
-			    $table->string('md5_url')->unique();
+			    $table->string('url')->unique()->comment('汽车url');
 			  	$table->string('status')->nullable(); 
 			});
-			echo "table ori_car create".PHP_EOL;
+			echo "table car_json create".PHP_EOL;
 		}
 
 
-		// car表
+		// car
 		if(!Capsule::schema()->hasTable('car'))
 		{
 			Capsule::schema()->create('car', function (Blueprint $table){
 			    $table->increments('id')->unique();
-			    $table->string('md5_url')->unique();
-			    $table->text('url')->nullable();
+			    $table->string('url')->unique()->comment('模块URL');
 			    $table->string('status')->nullable();
-
+			    $table->string('model')->nullable()->comment('模块名');
+			    $table->string('source')->nullable()->comment('vin查询页面地址');
+			    // 字段
 				$table->string('DESTINATION_SIM')->nullable();
 				$table->string('DESTINATION')->nullable();
 				$table->string('BODY_SIM')->nullable();
@@ -102,41 +99,68 @@ class onestep{
 			});
 			echo "table car create".PHP_EOL;
 		}
-		
+
+
+		// car_part
+		if(!Capsule::schema()->hasTable('car_part'))
+		{
+			Capsule::schema()->create('car_part', function (Blueprint $table){
+			    $table->increments('id')->unique();
+			    $table->string('url')->unique()->comment('零件类型地址');
+			  	$table->string('car_id')->nullable()->comment('汽车ID'); 
+			  	$table->string('status')->nullable();
+			  	$table->string('part_type')->nullable()->comment('零件类型');
+			  	$table->string('part_type_num')->nullable()->comment('零件类型批次');
+			  	$table->string('part_type_page')->nullable()->comment('零件类型页码');
+			});
+			echo "table car_part create".PHP_EOL;
+		}
+
+		// part_detail
+		if(!Capsule::schema()->hasTable('part_detail'))
+		{
+			Capsule::schema()->create('part_detail', function (Blueprint $table){
+			    $table->increments('id')->unique();
+			  	$table->string('car_id')->nullable()->comment('汽车ID'); 
+			  	$table->string('url')->unique()->comment('零件类型地址');
+			  	$table->string('part_type')->nullable()->comment('零件类型');
+			  	$table->string('part_type_num')->nullable()->comment('零件类型-批次');
+			  	$table->string('part_type_page')->nullable()->comment('零件类型页码');
+			  	$table->string('part_detail_key')->nullable()->comment('零件详情键');
+			  	$table->string('part_detail_title')->nullable()->comment('零件详情标题');
+			  	$table->text('part_detail_des')->nullable()->comment('零件描述');
+			});
+			echo "table part_detail create".PHP_EOL;
+		}
 	}
 
 	// car
 	public static function car()
 	{	
 		$guzzle = new guzzle();
-
 		// 转移
 		$url = 'http://www.toyodiy.com/parts/q?vin=';
 		$datas = Capsule::connection('vin_list')->table('vin_list')->get();
 		foreach ($datas as $k => $v) {
-			$temp = ['id'=>$v->mec_id,'md5_url'=>md5($url.$v->mec_code),'url'=>$url.$v->mec_code,'status'=>'wait'];
-			$empty = Capsule::table('vin')->where('md5_url',md5($url.$v->mec_code))->get()->isEmpty();
+			$temp = ['url'=>$url.$v->mec_code,'status'=>'wait'];
+			$empty = Capsule::table('vin')->where('url',$url.$v->mec_code)->get()->isEmpty();
 			if($empty) Capsule::table('vin')->insert($temp);
 		}
-
-
 		// 下载
 		$empty = Capsule::table('vin')->where('status','wait')->get()->isEmpty();
 		@mkdir(PROJECT_APP_DOWN.'vin', 0777, true);
 		while(!$empty) {
-			$datas = Capsule::table('vin')->where('status','wait')->limit(5)->get();
+			$datas = Capsule::table('vin')->where('status','wait')->limit(20)->get();
 		    $guzzle->poolRequest('vin',$datas);
 		    $empty = Capsule::table('vin')->where('status','wait')->get()->isEmpty();
 		}
-
-
 		// 解析
 		$empty = Capsule::table('vin')->where('status','completed')->get()->isEmpty();
 		while(!$empty) {
 			$datas = Capsule::table('vin')->where('status','completed')->limit(20)->get();
 			foreach ($datas as $data) {
 				$file = PROJECT_APP_DOWN.'vin/'.$data->id.'.html';
-				$prefix = 'http://www.toyodiy.com/';
+				$prefix = 'http://www.toyodiy.com/parts/';
 				if(!file_exists($file))
 				{
 					echo PROJECT_APP_DOWN.'vin/'.$data->id.'.html not found!'.PHP_EOL;
@@ -155,7 +179,7 @@ class onestep{
 					}
 					else
 					{
-						 // 更新状态
+						 // 网络错误
 					    Capsule::table('vin')->where('id', $data->id)->update(['status' =>'error']);
 						echo 'vin '.$data->id.' analyse error!'.PHP_EOL;
 						continue;
@@ -170,36 +194,56 @@ class onestep{
 						$temp['FRAME'] = $tr->find('td',4)->plaintext;
 						$url = $prefix.$tr->find('td',1)->find('a',0)->href;
 						$temp['url'] = $url;
-						$temp['md5_url'] = md5($url);
 						$temp['status'] = 'wait';
+						$temp['source'] = $data->url;
 						$str = '';
 						for ($i=4; $i < 12; $i++) { 
 							if($tr->find('td',$i)) $str.=' '.$tr->find('td',$i)->plaintext;	
 						}
 						$temp['Characteristics'] = $str;
 					}
-
-					// 入库
-				    $empty = Capsule::table('ori_car')->where('md5_url',md5($url))->get()->isEmpty();
-				    if($empty) Capsule::table('ori_car')->insert(['md5_url'=>md5($url),'status'=>'wait','json'=>json_encode($temp)]);	
-				    
-				    // 更新状态
+					// 唯一校验
+				    $empty = Capsule::table('car_json')->where('url',$url)->get()->isEmpty();
+				    if($empty) Capsule::table('car_json')->insert(['url'=>$url,'status'=>'wait','json'=>json_encode($temp)]);
+				    // 标记已读
 				    Capsule::table('vin')->where('id', $data->id)->update(['status' =>'readed']);
 					echo 'vin '.$data->id.' analyse completed!'.PHP_EOL;
-					// 清理内存防止内存泄漏
+					// 清楚对象
 					$dom-> clear(); 
 				}
 			}
 		    $empty = Capsule::table('vin')->where('status','completed')->get()->isEmpty();
 		}
 
-		// 建表并存储
-		$datas = Capsule::table('ori_car')->get();
+		// 汽车模块URL
+		$datas = Capsule::table('car_json')->get();
 		foreach ($datas as $k => $v) {
 			$temp = json_decode($v->json,true);
-			// 入库
-		    $empty = Capsule::table('car')->where('md5_url',$temp['md5_url'])->get()->isEmpty();
-		    if($empty) Capsule::table('car')->insert($temp);
+			// 四个模块
+			for ($i=1; $i < 5; $i++) { 
+				$tmp = $temp;
+				$url = rtrim($tmp['url'],'.html').'_'.$i.'.html';
+				$tmp['url'] = $url;
+				if($i==1)
+				{
+					$tmp['model'] = 'Engine/Fuel';
+				}
+				elseif($i==2)
+				{
+					$tmp['model'] = 'Powertrain/Chassis';
+				}
+				elseif($i==3)
+				{
+					$tmp['model'] = 'Body';
+				}
+				elseif($i==4)
+				{
+					$tmp['model'] = 'Electrical';
+				}
+				// 唯一校验
+				$empty = Capsule::table('car')->where('url',$url)->get()->isEmpty();
+			    if($empty) Capsule::table('car')->insert($tmp);
+			}
 		}
 	}
 	

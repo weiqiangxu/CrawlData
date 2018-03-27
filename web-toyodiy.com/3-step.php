@@ -9,5 +9,5 @@ require_once('./lib/threestep.php');
 // 封装下载类
 require_once('./lib/guzzle.php');
 
-// 模型
-threestep::model();
+// 配件详情
+threestep::part_detail();

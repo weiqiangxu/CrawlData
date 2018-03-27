@@ -51,46 +51,68 @@ class guzzle{
 		)->wait();
 	}
 
-	// 并发处理多个-协程就是用户态的线程-运用协程实现
+
+	// 获取蘑菇代理IIP五个
+	public function get_mogu_ip($count)
+	{
+		$file = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
+		if(empty($file))
+		{
+			// 蘑菇代理IP池
+			$file = json_decode(file_get_contents('http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=967bdb26fbc649349e5e92a351ec7dc3&count=20&expiryDate=0&format=1'),true);
+			if(count($file['msg']) < 5)
+			{
+				// 取得太频繁代理未返回
+				sleep(3);
+				$file = json_decode(file_get_contents('http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=967bdb26fbc649349e5e92a351ec7dc3&count=20&expiryDate=0&format=1'),true);
+			}
+			// 截取5个
+			$data = array_slice($file['msg'],0,$count);
+			
+			// 剩余存档
+			file_put_contents(__DIR__.'\ip.json', json_encode(array_slice($file['msg'],$count-1)));
+		}else{
+			// 截取5个
+			$data = array_slice($file,0,$count);
+			// 剩余存档
+			file_put_contents(__DIR__.'\ip.json', json_encode(array_slice($file,$count-1)));
+		}
+		return $data;
+	}
+
+
+
+	// 并发处理多个-5个
 	public function poolRequest($step,$datas,$status='completed')
 	{
 		$jar = new \GuzzleHttp\Cookie\CookieJar();
-		// 随机获取ip池的IP
-		$json = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
-
-
+		// 蘑菇代理IP池子
+		$json = $this->get_mogu_ip(count($datas));
+		// 代理ip
 		foreach ($datas as $k => $v) {
-			if(!empty($json['msg']))
+			// 代理IP不存在那么去除当前这个请求
+			if(empty($json[$k]))
 			{
-				$key = array_rand($json['msg'],1);
-				$ip = $json['msg'][$key];
-				// 使用随机获取的代理IP
-				$datas[$k]->config = [
-					'verify' => false,
-					// 代理IP
-					'proxy'=> "http://".$ip['ip'].':'.$ip['port'],
-					// 开启cookie通话
-					'cookies' => $jar,
-				    'headers' => [
-				    	// 浏览器获取的cookie
-						'cookies' => 'S=1me93fcqmp0d3migtpauitvu11',
-				    	'Accept-Encoding' => 'gzip, deflate',
-				    	'Accept-Language' => 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-				    	'Connection' => 'keep-alive',
-				    	'Host' => 'www.toyodiy.com',
-				        'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119 Safari/537.36',
-				        'Accept'     => 'text/html,application/xhtml+xm…plication/xml;q=0.9,*/*;q=0.8'
-				    ]
-				];
+				unset($datas[$k]);
+				continue;
 			}
-			else
-			{
-				// 无代理IP则使用真实IP
-				$datas[$k]->config = array(
-					'verify' => false,
-				);
-				$key = 'none';
-			}
+			$ip = $json[$k];
+			// request
+			$datas[$k]->config = [
+				'verify' => false,
+				'proxy'=> "http://".$ip['ip'].':'.$ip['port'],
+				'cookies' => $jar,
+			    'headers' => [
+					// 'cookies' => 'S=1me93fcqmp0d3migtpauitvu11',
+					'cookies' => 'S='.uniqid(),
+			    	'Accept-Encoding' => 'gzip, deflate',
+			    	'Accept-Language' => 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
+			    	'Connection' => 'keep-alive',
+			    	'Host' => 'www.toyodiy.com',
+			        'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119 Safari/537.36',
+			        'Accept'     => 'text/html,application/xhtml+xm…plication/xml;q=0.9,*/*;q=0.8'
+			    ]
+			];
 		}
 
 		// 当前发送的请求的最小ID
@@ -113,7 +135,7 @@ class guzzle{
 
 		$pool = new Pool($client, $requests(count($datas)), [
 			// 每发5个请求
-		    'concurrency' => 5,
+		    'concurrency' => count($datas),
 		    'fulfilled' => function ($response, $index ) use($step,$minId,$status) {		        
 		        // 当前处理的发送请求的ID
 		        $id = $index+(int)$minId;
@@ -124,35 +146,23 @@ class guzzle{
 		        {
 		        	// 保存文件
 		            file_put_contents($file,$response->getBody());
-		            // 命令行执行时候不需要经过apache直接输出在窗口
+		            // 输出结果
 		            echo $step.' '.$id.'.html'." download successful!".PHP_EOL;
 		        }
 		        // 标记已下载
-		        if(file_exists($file)) Capsule::table($step)->where('id', $id)->update(['status' =>$status]);		    	
+		        if(file_exists($file) && (filesize($file)>600) && !strpos(file_get_contents($file),'Accessing too fast'))
+		        {
+		        	Capsule::table($step)->where('id', $id)->update(['status' =>$status]);
+		        }
+		        else
+		        {
+		        	unlink($file);
+		        }		    	
 		    },
-		    'rejected' => function ($reason, $index) use($step,$minId,$key) {
+		    'rejected' => function ($reason, $index) use($step,$minId) {
 		        // this is delivered each failed request
 		        $id = $index+(int)$minId;
-			    if(strpos($reason->getMessage(), 'Failed to connect to'))
-			    {
-		       		// 如果是IP无法连接就去除当前代理IP
-			    	if($key == 'none' && $key!=0)
-			    	{				    	
-			    		echo 'ip has been deny!'.PHP_EOL;
-			    	}
-			    	else
-			    	{
-			    		$data = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
-				    	unset($data['msg'][$key]);
-				    	file_put_contents(__DIR__.'\ip.json', json_encode($data));
-				    	echo "del one ip port".PHP_EOL;
-			    	}
-			    }
-			    else
-			    {
-			    	echo $step.' '.$id.'.html'." netError!".PHP_EOL;
-			    }
-
+			    echo $step.' '.$id.'.html'." netError!".PHP_EOL;
 		    },
 		]);
 

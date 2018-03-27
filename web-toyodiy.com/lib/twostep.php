@@ -15,8 +15,9 @@ use Illuminate\Database\Schema\Blueprint;
 class twostep{
 
 	// 车系=》车
-	public static function year()
+	public static function car_part()
 	{
+		$guzzle = new guzzle();
 		// 下载
 		$empty = Capsule::table('car')->where('status','wait')->get()->isEmpty();
 		@mkdir(PROJECT_APP_DOWN.'car', 0777, true);
@@ -26,58 +27,50 @@ class twostep{
 		    $empty = Capsule::table('car')->where('status','wait')->get()->isEmpty();
 		}
 
+
 		// 解析
-		Capsule::table('car')->where('status','wait')->orderBy('id')->chunk(20,function($datas){
-
-			$prefix = 'http://www.rockauto.com';
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	// 解析页面
-		    	$file = PROJECT_APP_DOWN.'brand/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
-		    	if (file_exists($file))
-		    	{
-		    		if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
+		$empty = Capsule::table('car')->where('status','completed')->get()->isEmpty();
+		while(!$empty) {
+			$datas = Capsule::table('car')->where('status','completed')->limit(20)->get();
+			foreach ($datas as $data) {
+				$file = PROJECT_APP_DOWN.'car/'.$data->id.'.html';
+				$prefix = 'http://www.toyodiy.com/parts/';
+				if(!file_exists($file))
+				{
+					echo PROJECT_APP_DOWN.'car/'.$data->id.'.html not found!'.PHP_EOL;
+					continue;
+				}
+				if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
+				{
+					if($dom->find('.diag-list',0))
 					{
-						// 获取brand页面所有的model
-						foreach($dom->find('.nchildren .navlabellink') as $li)
-						{
-							$url = $prefix.$li->href;
-						    // 存储进去所有的&model
-						    $temp = [
-						    	'url' => $url,
-						    	'status' => 'wait',
-						    	'md5_url' => md5($url),
-						    	'status' => 'wait',
-						    	'brand' => $data->brand,
-						    	'year' => $li->plaintext
-						    ];
-						    $empty = Capsule::table('year')
-						    	->where('md5_url',md5($url))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('year')->insert($temp);					    	
-						    }
-						}
-			            // 更改SQL语句
-			            Capsule::table('brand')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'brand '.$data->id.'.html'."  analyse successful!".PHP_EOL;
+						foreach ($dom->find('.diag-list',0)->find('a') as $k => $a) {
+							$str = explode(':', $a->plaintext);
+							$temp = [
+								'url' => $prefix.$a->href,
+								'car_id' => $data->id,
+								'status' => 'wait',
+								'part_type' => htmlspecialchars_decode(trim($str[1])),
+								'part_type_num' => trim($str[0]),
+								'part_type_page' => 1
+							];
+							// 入库
+							$empty = Capsule::table('car_part')->where('url',$prefix.$a->href)->get()->isEmpty();
+							if($empty) Capsule::table('car_part')->insert($temp);
+						}				    
 					}
-		    	}
-		    }
-		});
-
-		// 检测是否还有未下载完成
-		$wait = Capsule::table('brand')
-            ->where('status', 'wait')
-           	->count();
-        if($wait>0) echo "still have item need to download ,sum : ".$wait."\r\n";
-
+					else
+					{
+						echo 'car id '.$data->id.' data not found!'.PHP_EOL;
+					}
+				    // 更新状态
+				    Capsule::table('car')->where('id', $data->id)->update(['status' =>'readed']);
+					echo 'car '.$data->id.' analyse completed!'.PHP_EOL;
+					// 清理内存防止内存泄漏
+					$dom-> clear(); 
+				}
+			}
+		    $empty = Capsule::table('car')->where('status','completed')->get()->isEmpty();
+		}
 	}
 }

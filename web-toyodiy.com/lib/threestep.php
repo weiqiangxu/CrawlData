@@ -14,73 +14,104 @@ use Illuminate\Database\Schema\Blueprint;
   */
 class threestep{
 
-	// 获取年份下面的model连接
-	public static function model()
+	// 车系=》车
+	public static function part_detail()
 	{
-		// year
-		Capsule::table('year')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'year', 0777, true);
-			// 并发请求
-		    $guzzle = new guzzle();
-		    $guzzle->poolRequest('year',$datas);
-		    sleep(2);    
-		});
+		$guzzle = new guzzle();
+		// 下载
+		$empty = Capsule::table('car_part')->where('status','wait')->get()->isEmpty();
+		@mkdir(PROJECT_APP_DOWN.'car_part', 0777, true);
+		while(!$empty) {
+			$datas = Capsule::table('car_part')->where('status','wait')->limit(10)->get();
+		    $guzzle->poolRequest('car_part',$datas);
+		    $empty = Capsule::table('car_part')->where('status','wait')->get()->isEmpty();
+		}
 
+		// 解析
+		$empty = Capsule::table('car_part')->where('status','completed')->get()->isEmpty();
+		while(!$empty) {
+			$datas = Capsule::table('car_part')->where('status','completed')->limit(5)->get();
+			foreach ($datas as $data) {
 
-		// 获取所有的year连接
-		Capsule::table('year')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
+				$file = PROJECT_APP_DOWN.'car_part/'.$data->id.'.html';
 
-			$prefix = 'http://www.rockauto.com';
-			// 循环块级结果
-		    foreach ($datas as $data)
-		    {
-		    	// 解析页面
-		    	$file = PROJECT_APP_DOWN.'year/'.$data->id.'.html';
-		    	// 判定是否已经存在且合法
-		    	if (file_exists($file))
-		    	{
-		    		if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
-					{
-						// 获取brand页面所有的model
-						foreach($dom->find('.nchildren .nchildren .navlabellink') as $li)
+				if(!file_exists($file))
+				{
+					echo PROJECT_APP_DOWN.'car_part/'.$data->id.'.html not found!'.PHP_EOL;
+					continue;
+				}
+				if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
+				{
+					// 下一页
+					if($dom->find('.phdr',0)){
+						if($dom->find('.phdr',0)->find('a',0))
 						{
-							$url = $prefix.$li->href;
-						    // 存储进去所有的&model
-						    $temp = [
-						    	'url' => $url,
-						    	'status' => 'wait',
-						    	'md5_url' => md5($url),
-						    	'status' => 'wait',
-						    	'brand' => $data->brand,
-						    	'year' => $data->year,
-						    	'model' => $li->plaintext
-						    ];
-						    $empty = Capsule::table('model')
-						    	->where('md5_url',md5($url))
-						    	->get()
-						    	->isEmpty();
-						    if($empty)
-						    {
-							    Capsule::table('model')->insert($temp);					    	
-						    }
+							$temp = array(
+								'url' => $dom->find('.phdr',0)->find('a',0)->href,
+								'car_id' => $data->car_id,
+								'status' => 'wait',
+								'part_type' => $data->part_type,
+								'part_type_num' => $data->part_type_num,
+								'part_type_page' => $data->part_type_page+1,
+							);
+							// 入库
+							$empty = Capsule::table('car_part')->where('url',$dom->find('.phdr',0)->find('a',0)->href)->get()->isEmpty();
+							if($empty) Capsule::table('car_part')->insert($temp);
 						}
-			            // 更改SQL语句
-			            Capsule::table('year')
-					            ->where('id', $data->id)
-					            ->update(['status' =>'readed']);
-					    // 命令行执行时候不需要经过apache直接输出在窗口
-			            echo 'year '.$data->id.'.html'."  analyse successful!".PHP_EOL;
 					}
-		    	}
-		    }
-		});
+					// 入库
+					if($dom->find('#t2',0))
+					{
+						foreach ($dom->find('#t2',0)->find('.h') as $k => $v) {
+							$key = $v->find('td',0)->plaintext;
+							$title = $v->find('td',1)->plaintext;
+							$des = array();
+							
+							if($v->next_sibling())
+							{
+								$class = $v->next_sibling()->getAttribute('class');
+								if(!$class)
+								{
+									foreach ($v->next_sibling()->find('td') as $kk => $vv) {
+										$des[] = trim($vv->plaintext);
+									}
+								}
+								else
+								{
+									echo 'car_part id '.$data->id.' line '.$k.' des not found!'.PHP_EOL;
+								}
+							}
+							else
+							{
+								echo 'car_part id '.$data->id.' line '.$k.' des not found!'.PHP_EOL;
+							}
 
-		// 检测是否还有未下载完成
-		$wait = Capsule::table('year')
-            ->where('status', 'wait')
-           	->count();
-        if($wait>0) echo "still have item need to download ,sum : ".$wait."\r\n";
-
+							$temp = [
+								'car_id' => $data->car_id,
+								'url' => $data->url,
+								'part_type' => $data->part_type,
+								'part_type_num' => $data->part_type_num,
+								'part_type_page' => $data->part_type_page,
+								'part_detail_key' => $key,
+								'part_detail_title' => $title,
+								'part_detail_des' => implode(' ', array_filter($des)),
+							];
+							// 入库
+							Capsule::table('part_detail')->insert($temp);
+						}
+					}
+					else
+					{
+						echo 'car_part id '.$data->id.' data not found!'.PHP_EOL;
+					}
+				    // 更新状态
+				    Capsule::table('car_part')->where('id', $data->id)->update(['status' =>'readed']);
+					echo 'car_part '.$data->id.' analyse completed!'.PHP_EOL;
+					// 清理内存防止内存泄漏
+					$dom-> clear(); 
+				}
+			}
+		    $empty = Capsule::table('car_part')->where('status','completed')->get()->isEmpty();
+		}
 	}
 }
