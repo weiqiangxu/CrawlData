@@ -62,8 +62,6 @@ class guzzle{
 	public function poolRequest($step,$datas,$status='completed')
 	{
 		$config = ['verify' => false];		
-		// 最小ID
-		$minId = $datas[0]->id;
 		// 创建request对象
 		$client = new Client();
         $requests = function ($total) use ($client,$datas,$config) {
@@ -77,21 +75,19 @@ class guzzle{
 		$pool = new Pool($client, $requests(count($datas)), [
 			// 每发5个请求
 		    'concurrency' => 5,
-		    'fulfilled' => function ($response, $index ) use($step,$minId,$status) {		        
-		        // 当前处理的发送请求的ID
-		        $id = $index+(int)$minId;
+		    'fulfilled' => function ($response, $index ) use($step,$datas,$status) {		        
 		        // 文件保存路径
-		        $file = PROJECT_APP_DOWN.$step.'/'.$id.'.html';
+		        $file = PROJECT_APP_DOWN.$step.'/'.$datas[$index]->id.'.html';
 		        // 校验回调成功
 		        if($response->getStatusCode()==200)
 		        {
 		        	// 保存文件
 		            file_put_contents($file,$response->getBody());
 		            // 输出结果
-		            echo $step.' '.$id.'.html'." download successful!".PHP_EOL;
+		            echo $step.' '.$datas[$index]->id.'.html'." download successful!".PHP_EOL;
 		        }
 		        // 更改SQL语句
-		        if(file_exists($file))  Capsule::table($step)->where('id', $id)->update(['status' =>$status]);	    	
+		        if(file_exists($file))  Capsule::table($step)->where('id', $datas[$index]->id)->update(['status' =>$status]);	    	
 		    },
 		    'rejected' => function ($reason, $index){
 				echo 'request has been deny!'.PHP_EOL;
