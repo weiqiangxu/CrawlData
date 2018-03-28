@@ -19,7 +19,7 @@ class threestep{
 	{
 		$guzzle = new guzzle();
 		// 下载
-		$empty = Capsule::table('car_part')->where('status','wait')->get()->isEmpty();
+		$empty = Capsule::table('car_part')->where('status','waits')->get()->isEmpty();
 		@mkdir(PROJECT_APP_DOWN.'car_part', 0777, true);
 		while(!$empty) {
 			$datas = Capsule::table('car_part')->where('status','wait')->limit(100)->get();
@@ -61,101 +61,66 @@ class threestep{
 							if($empty) Capsule::table('car_part')->insert($temp);
 						}
 					}
-					// 入库
+
+					// 获取前缀
+					$prefix = str_replace('&emsp;','',$dom->find(".phdr",0)->plaintext);
+					if($dom->find(".phdr",0)->find('a',0))
+					{
+						$next = $dom->find(".phdr",0)->find('a',0)->plaintext;
+						$prefix = str_replace($next,'', $prefix);
+					}
+
+
+					// 号码
 					if($dom->find('#t2',0))
 					{
-						foreach ($dom->find('#t2',0)->find('.h') as $k => $v) {
-							$key = $v->find('td',0)->plaintext;
-							$title = $v->find('td',1)->plaintext;
-							$des = array();
-							
-							if($v->next_sibling() && ($v->next_sibling()->tag == 'tr'))
+						foreach ($dom->find('#t2',0)->find('tr')  as $line => $tr)
+						{
+							$temp = array();
+							// 细文本
+							if(!$tr->getAttribute('class'))
 							{
-								$class = $v->next_sibling()->getAttribute('class');
-								if(!$class)
+								$num =  $tr->find('td',0)->plaintext;
+								if(!empty($num))
 								{
-									foreach ($v->next_sibling()->find('td') as $kk => $vv) {
-										$des[] = trim($vv->plaintext);
-									}
-
-									// 两行描述情况
-									if($v->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->tag == 'tr'))
-									{
-										$class = $v->next_sibling()->next_sibling()->getAttribute('class');
-										if(!$class)
-										{
-											$des[] = ';';
-											foreach ($v->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
-												$des[] = trim($vv->plaintext);
-											}
-
-											// 三行描述情况
-											if($v->next_sibling()->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->next_sibling()->tag == 'tr'))
-											{
-												$class = $v->next_sibling()->next_sibling()->next_sibling()->getAttribute('class');
-												if(!$class)
-												{
-													$des[] = ';';
-													foreach ($v->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
-														$des[] = trim($vv->plaintext);
-													}
-													// 四行描述情况
-													if($v->next_sibling()->next_sibling()->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->tag == 'tr'))
-													{
-														$class = $v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->getAttribute('class');
-														if(!$class)
-														{
-															$des[] = ';';
-															foreach ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
-																$des[] = trim($vv->plaintext);
-															}
-
-															// 五行描述情况
-															if($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling()->tag == 'tr'))
-															{
-																$class = $v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling()->getAttribute('class');
-																if(!$class)
-																{
-																	$des[] = ';';
-																	foreach ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
-																		$des[] = trim($vv->plaintext);
-																	}
-																}
-															}
-
-
-
-														}
-													}
-												}
-											}
-										}
-
-									}
+									$des = str_replace($tr->find('td',1)->plaintext, '', $prefix).$tr->find('td',1)->plaintext;
+									$sum = $tr->find('td',2)->plaintext;
+									$temp = [
+										'car_id' => $data->car_id,
+										'url' => $data->url,
+										'part_type' => $data->part_type,
+										'part_type_num' => $data->part_type_num,
+										'part_type_page' => $data->part_type_page,
+										'part_detail_num' =>$num,
+										'part_detail_des' => trim($des),
+										'part_detail_sum' => $sum
+									];
 								}
-								else
-								{
-									echo 'car_part id '.$data->id.' line '.$k.' des not found!'.PHP_EOL;
-								}
-
 							}
 							else
 							{
-								echo 'car_part id '.$data->id.' line '.$k.' des not found!'.PHP_EOL;
-							}
+								// 粗文本
+								// 下一行是粗的 或者 不存在 = 号码
+								if(!$tr->next_sibling() || ($tr->next_sibling()->tag!='tr') || ($tr->next_sibling()->getAttribute('class')=='h'))
+								{
+									$num =  $tr->find('td',0)->plaintext;
+									$des = str_replace($tr->find('td',1)->plaintext, '', $prefix).$tr->find('td',1)->plaintext;
 
-							$temp = [
-								'car_id' => $data->car_id,
-								'url' => $data->url,
-								'part_type' => $data->part_type,
-								'part_type_num' => $data->part_type_num,
-								'part_type_page' => $data->part_type_page,
-								'part_detail_key' => $key,
-								'part_detail_title' => $title,
-								'part_detail_des' => implode(' ', array_filter(array_map('htmlspecialchars_decode',$des))),
-							];
+									$sum = $tr->find('td',2)->plaintext;
+									$temp = [
+										'car_id' => $data->car_id,
+										'url' => $data->url,
+										'part_type' => $data->part_type,
+										'part_type_num' => $data->part_type_num,
+										'part_type_page' => $data->part_type_page,
+										'part_detail_num' =>$num,
+										'part_detail_des' => trim($des),
+										'part_detail_sum' => $sum
+									];
+								}
+							}
 							// 入库
-							Capsule::table('part_detail')->insert($temp);
+							if(!empty($temp)) Capsule::table('part_detail')->insert($temp);
 						}
 					}
 					else

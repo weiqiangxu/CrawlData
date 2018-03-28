@@ -126,9 +126,9 @@ class onestep{
 			  	$table->string('part_type')->nullable()->comment('零件类型');
 			  	$table->string('part_type_num')->nullable()->comment('零件类型-批次');
 			  	$table->string('part_type_page')->nullable()->comment('零件类型页码');
-			  	$table->string('part_detail_key')->nullable()->comment('零件详情键');
-			  	$table->string('part_detail_title')->nullable()->comment('零件详情标题');
-			  	$table->text('part_detail_des')->nullable()->comment('零件描述');
+			  	$table->string('part_detail_num')->nullable()->comment('号码');
+			  	$table->string('part_detail_des')->nullable()->comment('描叙');
+			  	$table->string('part_detail_sum')->nullable()->comment('数量');
 			});
 			echo "table part_detail create".PHP_EOL;
 		}
