@@ -61,10 +61,13 @@ class guzzle{
 			$api = 'http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=2c3a4f44ec154091aea9122889a7647d&count=10&expiryDate=0&format=1';
 			// 蘑菇代理IP池
 			$file = json_decode(file_get_contents($api),true);
-			if(count($file['msg']) < 5)
+
+			if(!is_array($file['msg']))
 			{
+				echo 'request mogu.com too fast!'.PHP_EOL;
 				// 取得太频繁代理未返回
 				sleep(3);
+				// 重新获取
 				$file = json_decode(file_get_contents($api),true);
 			}
 			// 截取5个
@@ -89,14 +92,8 @@ class guzzle{
 		$jar = new \GuzzleHttp\Cookie\CookieJar();
 		// 蘑菇代理IP池子
 		$json = $this->get_mogu_ip(count($datas));
-		// 代理ip
 		foreach ($datas as $k => $v) {
-			// 代理IP不存在那么去除当前这个请求
-			if(empty($json[$k]))
-			{
-				unset($datas[$k]);
-				continue;
-			}
+			// 代理ip
 			$ip = $json[$k];
 			// request
 			$datas[$k]->config = [
