@@ -19,7 +19,7 @@ class threestep{
 	{
 		$guzzle = new guzzle();
 		// 下载
-		$empty = Capsule::table('car_part')->where('status','waits')->get()->isEmpty();
+		$empty = Capsule::table('car_part')->where('status','wait')->get()->isEmpty();
 		@mkdir(PROJECT_APP_DOWN.'car_part', 0777, true);
 		while(!$empty) {
 			$datas = Capsule::table('car_part')->where('status','wait')->limit(100)->get();
