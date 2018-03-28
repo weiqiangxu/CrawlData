@@ -58,13 +58,14 @@ class guzzle{
 		$file = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
 		if(empty($file))
 		{
+			$api = 'http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=2c3a4f44ec154091aea9122889a7647d&count=10&expiryDate=0&format=1';
 			// 蘑菇代理IP池
-			$file = json_decode(file_get_contents('http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=967bdb26fbc649349e5e92a351ec7dc3&count=20&expiryDate=0&format=1'),true);
+			$file = json_decode(file_get_contents($api),true);
 			if(count($file['msg']) < 5)
 			{
 				// 取得太频繁代理未返回
 				sleep(3);
-				$file = json_decode(file_get_contents('http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=967bdb26fbc649349e5e92a351ec7dc3&count=20&expiryDate=0&format=1'),true);
+				$file = json_decode(file_get_contents($api),true);
 			}
 			// 截取5个
 			$data = array_slice($file['msg'],0,$count);
@@ -99,6 +100,7 @@ class guzzle{
 			$ip = $json[$k];
 			// request
 			$datas[$k]->config = [
+				'timeout' => 5,
 				'verify' => false,
 				'proxy'=> "http://".$ip['ip'].':'.$ip['port'],
 				'cookies' => $jar,
@@ -115,8 +117,6 @@ class guzzle{
 			];
 		}
 
-		// 当前发送的请求的最小ID
-		$minId = $datas[0]->id;
 
 		// 创建request对象
 		$client = new Client();
@@ -136,33 +136,30 @@ class guzzle{
 		$pool = new Pool($client, $requests(count($datas)), [
 			// 每发5个请求
 		    'concurrency' => count($datas),
-		    'fulfilled' => function ($response, $index ) use($step,$minId,$status) {		        
-		        // 当前处理的发送请求的ID
-		        $id = $index+(int)$minId;
+		    'fulfilled' => function ($response, $index ) use($step,$status,$datas) {		        
 		        // 文件保存路径
-		        $file = PROJECT_APP_DOWN.$step.'/'.$id.'.html';
+		        $file = PROJECT_APP_DOWN.$step.'/'.$datas[$index]->id.'.html';
 		        // 校验回调成功
 		        if($response->getStatusCode()==200)
 		        {
 		        	// 保存文件
 		            file_put_contents($file,$response->getBody());
 		            // 输出结果
-		            echo $step.' '.$id.'.html'." download successful!".PHP_EOL;
+		            echo $step.' '.$datas[$index]->id.'.html'." download successful!".PHP_EOL;
 		        }
 		        // 标记已下载
 		        if(file_exists($file) && (filesize($file)>600) && !strpos(file_get_contents($file),'Accessing too fast'))
 		        {
-		        	Capsule::table($step)->where('id', $id)->update(['status' =>$status]);
+		        	Capsule::table($step)->where('id', $datas[$index]->id)->update(['status' =>$status]);
 		        }
 		        else
 		        {
 		        	unlink($file);
 		        }		    	
 		    },
-		    'rejected' => function ($reason, $index) use($step,$minId) {
+		    'rejected' => function ($reason, $index) use($step,$datas) {
 		        // this is delivered each failed request
-		        $id = $index+(int)$minId;
-			    echo $step.' '.$id.'.html'." netError!".PHP_EOL;
+			    echo $step.' '.$datas[$index]->id.'.html'." netError!".PHP_EOL;
 		    },
 		]);
 

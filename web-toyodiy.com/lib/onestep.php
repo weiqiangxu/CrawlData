@@ -122,7 +122,7 @@ class onestep{
 			Capsule::schema()->create('part_detail', function (Blueprint $table){
 			    $table->increments('id')->unique();
 			  	$table->string('car_id')->nullable()->comment('汽车ID'); 
-			  	$table->string('url')->unique()->comment('零件类型地址');
+			  	$table->string('url')->comment('零件类型地址');
 			  	$table->string('part_type')->nullable()->comment('零件类型');
 			  	$table->string('part_type_num')->nullable()->comment('零件类型-批次');
 			  	$table->string('part_type_page')->nullable()->comment('零件类型页码');

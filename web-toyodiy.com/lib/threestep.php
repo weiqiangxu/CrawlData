@@ -29,6 +29,7 @@ class threestep{
 
 		// 解析
 		$empty = Capsule::table('car_part')->where('status','completed')->get()->isEmpty();
+		$prefix = 'http://www.toyodiy.com/parts/';
 		while(!$empty) {
 			$datas = Capsule::table('car_part')->where('status','completed')->limit(5)->get();
 			foreach ($datas as $data) {
@@ -38,6 +39,7 @@ class threestep{
 				if(!file_exists($file))
 				{
 					echo PROJECT_APP_DOWN.'car_part/'.$data->id.'.html not found!'.PHP_EOL;
+					Capsule::table('car_part')->where('id', $data->id)->update(['status' =>'notfound']);
 					continue;
 				}
 				if($dom = HtmlDomParser::str_get_html(file_get_contents($file)))
@@ -47,7 +49,7 @@ class threestep{
 						if($dom->find('.phdr',0)->find('a',0))
 						{
 							$temp = array(
-								'url' => $dom->find('.phdr',0)->find('a',0)->href,
+								'url' => $prefix.$dom->find('.phdr',0)->find('a',0)->href,
 								'car_id' => $data->car_id,
 								'status' => 'wait',
 								'part_type' => $data->part_type,
@@ -55,7 +57,7 @@ class threestep{
 								'part_type_page' => $data->part_type_page+1,
 							);
 							// 入库
-							$empty = Capsule::table('car_part')->where('url',$dom->find('.phdr',0)->find('a',0)->href)->get()->isEmpty();
+							$empty = Capsule::table('car_part')->where('url',$prefix.$dom->find('.phdr',0)->find('a',0)->href)->get()->isEmpty();
 							if($empty) Capsule::table('car_part')->insert($temp);
 						}
 					}
@@ -67,7 +69,7 @@ class threestep{
 							$title = $v->find('td',1)->plaintext;
 							$des = array();
 							
-							if($v->next_sibling())
+							if($v->next_sibling() && ($v->next_sibling()->tag == 'tr'))
 							{
 								$class = $v->next_sibling()->getAttribute('class');
 								if(!$class)
@@ -75,11 +77,39 @@ class threestep{
 									foreach ($v->next_sibling()->find('td') as $kk => $vv) {
 										$des[] = trim($vv->plaintext);
 									}
+
+									// 两行描述情况
+									if($v->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->tag == 'tr'))
+									{
+										$class = $v->next_sibling()->next_sibling()->getAttribute('class');
+										if(!$class)
+										{
+											$des[] = ';';
+											foreach ($v->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
+												$des[] = trim($vv->plaintext);
+											}
+
+											// 三行描述情况
+											if($v->next_sibling()->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->next_sibling()->tag == 'tr'))
+											{
+												$class = $v->next_sibling()->next_sibling()->next_sibling()->getAttribute('class');
+												if(!$class)
+												{
+													$des[] = ';';
+													foreach ($v->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
+														$des[] = trim($vv->plaintext);
+													}
+												}
+											}
+										}
+
+									}
 								}
 								else
 								{
 									echo 'car_part id '.$data->id.' line '.$k.' des not found!'.PHP_EOL;
 								}
+
 							}
 							else
 							{
