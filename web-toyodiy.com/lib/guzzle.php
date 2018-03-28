@@ -58,7 +58,7 @@ class guzzle{
 		$file = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
 		if(empty($file))
 		{
-			$api = 'http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=2c3a4f44ec154091aea9122889a7647d&count=10&expiryDate=0&format=1';
+			$api = 'http://piping.mogumiao.com/proxy/api/get_ip_bs?appKey=9ef4e42d8dff456ba1f8e501ed02b0dd&count=10&expiryDate=0&format=1';
 			// 蘑菇代理IP池
 			$file = json_decode(file_get_contents($api),true);
 

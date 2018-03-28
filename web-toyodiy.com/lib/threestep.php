@@ -29,7 +29,7 @@ class threestep{
 
 		// 解析
 		$empty = Capsule::table('car_part')->where('status','completed')->get()->isEmpty();
-		$prefix = 'http://www.toyodiy.com/parts/';
+		$url_prefix = 'http://www.toyodiy.com/parts/';
 		while(!$empty) {
 			$datas = Capsule::table('car_part')->where('status','completed')->limit(5)->get();
 			foreach ($datas as $data) {
@@ -46,10 +46,11 @@ class threestep{
 				{
 					// 下一页
 					if($dom->find('.phdr',0)){
-						if($dom->find('.phdr',0)->find('a',0))
+
+						if($dom->find('.phdr',0)->last_child() && strpos($dom->find('.phdr',0)->last_child()->plaintext, 'ext'))
 						{
 							$temp = array(
-								'url' => $prefix.$dom->find('.phdr',0)->find('a',0)->href,
+								'url' => $url_prefix.$dom->find('.phdr',0)->last_child()->href,
 								'car_id' => $data->car_id,
 								'status' => 'wait',
 								'part_type' => $data->part_type,
@@ -57,11 +58,10 @@ class threestep{
 								'part_type_page' => $data->part_type_page+1,
 							);
 							// 入库
-							$empty = Capsule::table('car_part')->where('url',$prefix.$dom->find('.phdr',0)->find('a',0)->href)->get()->isEmpty();
+							$empty = Capsule::table('car_part')->where('url',$url_prefix.$dom->find('.phdr',0)->last_child()->href)->get()->isEmpty();
 							if($empty) Capsule::table('car_part')->insert($temp);
 						}
 					}
-
 					// 获取前缀
 					$prefix = str_replace('&emsp;','',$dom->find(".phdr",0)->plaintext);
 					if($dom->find(".phdr",0)->find('a',0))
@@ -76,7 +76,7 @@ class threestep{
 					{
 						foreach ($dom->find('#t2',0)->find('tr')  as $line => $tr)
 						{
-							$temp = array();
+							$tmp = array();
 							// 细文本
 							if(!$tr->getAttribute('class'))
 							{
@@ -85,7 +85,7 @@ class threestep{
 								{
 									$des = str_replace($tr->find('td',1)->plaintext, '', $prefix).$tr->find('td',1)->plaintext;
 									$sum = $tr->find('td',2)->plaintext;
-									$temp = [
+									$tmp = [
 										'car_id' => $data->car_id,
 										'url' => $data->url,
 										'part_type' => $data->part_type,
@@ -107,7 +107,7 @@ class threestep{
 									$des = str_replace($tr->find('td',1)->plaintext, '', $prefix).$tr->find('td',1)->plaintext;
 
 									$sum = $tr->find('td',2)->plaintext;
-									$temp = [
+									$tmp = [
 										'car_id' => $data->car_id,
 										'url' => $data->url,
 										'part_type' => $data->part_type,
@@ -120,7 +120,7 @@ class threestep{
 								}
 							}
 							// 入库
-							if(!empty($temp)) Capsule::table('part_detail')->insert($temp);
+							if(!empty($tmp)) Capsule::table('part_detail')->insert($tmp);
 						}
 					}
 					else
