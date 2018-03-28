@@ -53,7 +53,7 @@ class guzzle{
 
 
 	// 获取蘑菇代理IIP五个
-	public function get_mogu_ip($count)
+	public function get_mogu_ip()
 	{
 		$file = json_decode(file_get_contents(__DIR__.'\ip.json'), true);
 		if(empty($file))
@@ -71,16 +71,19 @@ class guzzle{
 				$file = json_decode(file_get_contents($api),true);
 			}
 			// 截取5个
-			$data = array_slice($file['msg'],0,$count);
+			$data = array_slice($file['msg'],0,10);
 			
 			// 剩余存档
-			file_put_contents(__DIR__.'\ip.json', json_encode(array_slice($file['msg'],$count-1)));
+			file_put_contents(__DIR__.'\ip.json', json_encode(array_slice($file['msg'],10)));
 		}else{
 			// 截取5个
-			$data = array_slice($file,0,$count);
+			$data = array_slice($file,0,10);
 			// 剩余存档
-			file_put_contents(__DIR__.'\ip.json', json_encode(array_slice($file,$count-1)));
+			file_put_contents(__DIR__.'\ip.json', json_encode(array_slice($file,10)));
 		}
+		// 一次性返回20个，其中22重复
+		$data = array_merge($data,$data,$data,$data,$data,$data,$data,$data,$data,$data);
+
 		return $data;
 	}
 
@@ -91,13 +94,13 @@ class guzzle{
 	{
 		$jar = new \GuzzleHttp\Cookie\CookieJar();
 		// 蘑菇代理IP池子
-		$json = $this->get_mogu_ip(count($datas));
+		$json = $this->get_mogu_ip();
 		foreach ($datas as $k => $v) {
 			// 代理ip
 			$ip = $json[$k];
 			// request
 			$datas[$k]->config = [
-				'timeout' => 5,
+				'timeout' => 8,
 				'verify' => false,
 				'proxy'=> "http://".$ip['ip'].':'.$ip['port'],
 				'cookies' => $jar,
@@ -141,13 +144,13 @@ class guzzle{
 		        {
 		        	// 保存文件
 		            file_put_contents($file,$response->getBody());
-		            // 输出结果
-		            echo $step.' '.$datas[$index]->id.'.html'." download successful!".PHP_EOL;
 		        }
 		        // 标记已下载
 		        if(file_exists($file) && (filesize($file)>600) && !strpos(file_get_contents($file),'Accessing too fast'))
 		        {
 		        	Capsule::table($step)->where('id', $datas[$index]->id)->update(['status' =>$status]);
+		        	 // 输出结果
+		            echo $step.' '.$datas[$index]->id.'.html'." download successful!".PHP_EOL;
 		        }
 		        else
 		        {

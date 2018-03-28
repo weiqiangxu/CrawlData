@@ -22,7 +22,7 @@ class threestep{
 		$empty = Capsule::table('car_part')->where('status','wait')->get()->isEmpty();
 		@mkdir(PROJECT_APP_DOWN.'car_part', 0777, true);
 		while(!$empty) {
-			$datas = Capsule::table('car_part')->where('status','wait')->limit(10)->get();
+			$datas = Capsule::table('car_part')->where('status','wait')->limit(100)->get();
 		    $guzzle->poolRequest('car_part',$datas);
 		    $empty = Capsule::table('car_part')->where('status','wait')->get()->isEmpty();
 		}
@@ -99,6 +99,34 @@ class threestep{
 													foreach ($v->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
 														$des[] = trim($vv->plaintext);
 													}
+													// 四行描述情况
+													if($v->next_sibling()->next_sibling()->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->tag == 'tr'))
+													{
+														$class = $v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->getAttribute('class');
+														if(!$class)
+														{
+															$des[] = ';';
+															foreach ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
+																$des[] = trim($vv->plaintext);
+															}
+
+															// 五行描述情况
+															if($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling() && ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling()->tag == 'tr'))
+															{
+																$class = $v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling()->getAttribute('class');
+																if(!$class)
+																{
+																	$des[] = ';';
+																	foreach ($v->next_sibling()->next_sibling()->next_sibling()->next_sibling()->next_sibling()->find('td') as $kk => $vv) {
+																		$des[] = trim($vv->plaintext);
+																	}
+																}
+															}
+
+
+
+														}
+													}
 												}
 											}
 										}
@@ -124,7 +152,7 @@ class threestep{
 								'part_type_page' => $data->part_type_page,
 								'part_detail_key' => $key,
 								'part_detail_title' => $title,
-								'part_detail_des' => implode(' ', array_filter($des)),
+								'part_detail_des' => implode(' ', array_filter(array_map('htmlspecialchars_decode',$des))),
 							];
 							// 入库
 							Capsule::table('part_detail')->insert($temp);
