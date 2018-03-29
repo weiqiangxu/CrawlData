@@ -19,20 +19,27 @@ class fourstep{
 	public static function model_detail()
 	{
 		// 下载
-		Capsule::table('model_list')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'model_list', 0777, true);
+		$guzzle = new guzzle();
+		$empty = Capsule::table('model_list')->where('status','wait')->get()->isEmpty();
+		// 创建文件夹
+		@mkdir(PROJECT_APP_DOWN.'model_list', 0777, true);
+		while(!$empty) {
+			$datas = Capsule::table('model_list')->where('status','wait')->orderBy('id')->limit(10)->get();
 			// 并发请求
-		    $guzzle = new guzzle();
 		    $guzzle->poolRequest('model_list',$datas);
-		});
+		    // 是否完成
+		    $empty = Capsule::table('model_list')->where('status','wait')->get()->isEmpty();
+		}
+
 
 		// 解析
-		Capsule::table('model_list')->where('status','completed')->orderBy('id')->chunk(10,function($datas){
-			// 站点路径
-			$prefix = 'https://car.autohome.com.cn';
-			// 配置路径
-			$detailPrefix = 'https://car.autohome.com.cn/config/spec/';
+		$empty = Capsule::table('model_list')->where('status','completed')->get()->isEmpty();
+		// 站点路径
+		$prefix = 'https://car.autohome.com.cn';
+		// 配置路径
+		$detailPrefix = 'https://car.autohome.com.cn/config/spec/';
+		while(!$empty) {
+			$datas = Capsule::table('model_list')->where('status','completed')->orderBy('id')->limit(50)->get();
 			// 循环
 		    foreach ($datas as $data)
 		    {
@@ -87,7 +94,11 @@ class fourstep{
 					}
 		    	}
 		    }
-		});
+		    // 是否完成
+		    $empty = Capsule::table('model_list')->where('status','completed')->get()->isEmpty();
+		}
+
+
 		// 剩余统计
 		$wait = Capsule::table('model_list')->where('status', 'wait')->count();
         if($wait) echo "still have item of model_list need to download ,sum : ".$wait.PHP_EOL;

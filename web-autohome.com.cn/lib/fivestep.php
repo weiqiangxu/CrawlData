@@ -19,18 +19,26 @@ class fivestep{
 	public static function car_down()
 	{
 		// 下载所有的model页面
-		Capsule::table('model_detail')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'model_detail', 0777, true);
+		$guzzle = new guzzle();
+		$empty = Capsule::table('model_detail')->where('status','wait')->get()->isEmpty();
+		// 创建文件夹
+		@mkdir(PROJECT_APP_DOWN.'model_detail', 0777, true);
+		while(!$empty) {
+			$datas = Capsule::table('model_detail')->where('status','wait')->orderBy('id')->limit(10)->get();
 			// 并发请求
-		    $guzzle = new guzzle();
 		    $guzzle->poolRequest('model_detail',$datas);
-		});
+		    // 是否完成
+		    $empty = Capsule::table('model_detail')->where('status','wait')->get()->isEmpty();
+		}
 	}
 	// 分析
 	public static function car_analyse()
 	{
-		Capsule::table('model_detail')->where('status','completed')->orderBy('id')->chunk(1,function($datas){
+
+		$empty = Capsule::table('model_detail')->where('status','completed')->get()->isEmpty();
+		while(!$empty) {
+			// 取出10条
+			$datas = Capsule::table('model_detail')->where('status','completed')->orderBy('id')->limit(20)->get();
 			$phan = array();
 			$start = time();
 			foreach ($datas as $data)
@@ -46,6 +54,7 @@ class fivestep{
 			    $v->join();
 			}
 			echo 'time: '.(time()-$start) .' second. '.PHP_EOL;
-		});
+			$empty = Capsule::table('model_detail')->where('status','completed')->get()->isEmpty();
+		}
 	}
 }

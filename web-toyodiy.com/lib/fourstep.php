@@ -49,7 +49,7 @@ class fourstep{
 	            ->select('car.model','car.source', 'part_detail.*')
 	            ->where('part_detail.status','wait')
 	            ->orderBy('part_detail.id','asc')
-	            ->limit(500)->get();
+	            ->limit(1000)->get();
 
 	        foreach ($datas as $data) {
 	        	// 处理描述
@@ -64,7 +64,7 @@ class fourstep{
 	        	// 2、vin表
 	        	$data_vin = Capsule::connection('yp_realoem')->table('data_vins')->where([['vin_name',$vin],['vin_etk_id',$data_etks['etk_id']]])->first();
 			    if(empty($data_vin)){
-			    	$temp = ['vin_etk_id'=>$data_etks['etk_id'],'vin_name'=>$data_etks['etk_name'],'vin_read'=>1];
+			    	$temp = ['vin_etk_id'=>$data_etks['etk_id'],'vin_name'=>$vin,'vin_read'=>1];
 			    	$data_vin_id = Capsule::connection('yp_realoem')->table('data_vins')->insertGetId($temp);
 			    }else{
 			    	$data_vin_id = $data_vin->vin_id;
@@ -89,9 +89,9 @@ class fourstep{
 			    }
 
 	        	// 5、关键字表 => 号码名称
-	        	$data_keyword = Capsule::connection('yp_realoem')->table('data_keyword')->where([['key_keyword',$data->part_detail_name]])->first();
+	        	$data_keyword = Capsule::connection('yp_realoem')->table('data_keyword')->where([['key_keyword',trim($data->part_detail_name)]])->first();
 			    if(empty($data_keyword)){
-			    	$data_keyword_id = Capsule::connection('yp_realoem')->table('data_keyword')->insertGetId(['key_keyword'=>$data->part_detail_name]);
+			    	$data_keyword_id = Capsule::connection('yp_realoem')->table('data_keyword')->insertGetId(['key_keyword'=>trim($data->part_detail_name)]);
 			    }else{
 			    	$data_keyword_id = $data_keyword->key_id;
 			    }

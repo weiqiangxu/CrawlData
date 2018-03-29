@@ -17,14 +17,20 @@ class threestep{
 	// 下载
 	public static function model_list()
 	{
+
 		// 下载
-		Capsule::table('series')->where('status','wait')->orderBy('id')->chunk(10,function($datas){
-			// 创建文件夹
-			@mkdir(PROJECT_APP_DOWN.'series', 0777, true);
+		$guzzle = new guzzle();
+		$empty = Capsule::table('series')->where('status','wait')->get()->isEmpty();
+		// 创建文件夹
+		@mkdir(PROJECT_APP_DOWN.'series', 0777, true);
+		while(!$empty) {
+			$datas = Capsule::table('series')->where('status','wait')->orderBy('id')->limit(10)->get();
 			// 并发请求
-		    $guzzle = new guzzle();
 		    $guzzle->poolRequest('series',$datas);
-		});
+		    // 是否完成
+		    $empty = Capsule::table('series')->where('status','wait')->get()->isEmpty();
+		}
+
 		// 解析
 		Capsule::table('series')->where('status','completed')->orderBy('id')->chunk(20,function($datas){
 			$prefix = 'https://car.autohome.com.cn';

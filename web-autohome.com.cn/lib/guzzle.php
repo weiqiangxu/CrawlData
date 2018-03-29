@@ -61,7 +61,7 @@ class guzzle{
 	// 并发处理多个-协程就是用户态的线程-运用协程实现
 	public function poolRequest($step,$datas,$status='completed')
 	{
-		$config = ['verify' => false];		
+		$config = ['verify' => false,'timeout' => 8];		
 		// 创建request对象
 		$client = new Client();
         $requests = function ($total) use ($client,$datas,$config) {
@@ -74,7 +74,7 @@ class guzzle{
         };
 		$pool = new Pool($client, $requests(count($datas)), [
 			// 每发5个请求
-		    'concurrency' => 5,
+		    'concurrency' => count($datas),
 		    'fulfilled' => function ($response, $index ) use($step,$datas,$status) {		        
 		        // 文件保存路径
 		        $file = PROJECT_APP_DOWN.$step.'/'.$datas[$index]->id.'.html';
