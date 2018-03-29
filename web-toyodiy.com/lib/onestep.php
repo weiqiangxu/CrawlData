@@ -129,6 +129,9 @@ class onestep{
 			  	$table->string('part_detail_num')->nullable()->comment('号码');
 			  	$table->text('part_detail_des')->nullable()->comment('描叙');
 			  	$table->string('part_detail_sum')->nullable()->comment('数量');
+			  	$table->string('part_detail_name')->nullable()->comment('名称');
+			  	$table->string('part_detail_prefix')->nullable()->comment('前缀');
+			  	$table->string('status')->nullable()->default('wait')->comment('状态');
 			});
 			echo "table part_detail create".PHP_EOL;
 		}

@@ -63,17 +63,32 @@ class threestep{
 						}
 					}
 					// 获取前缀
-					$prefix = str_replace('&emsp;','',$dom->find(".phdr",0)->plaintext);
-					if($dom->find(".phdr",0)->find('a',0))
+					$prefix = '';
+					if($dom->find(".phdr",0))
 					{
-						$next = $dom->find(".phdr",0)->find('a',0)->plaintext;
-						$prefix = str_replace($next,'', $prefix);
+						// 全部获取
+						$prefix = str_replace('&emsp;','',$dom->find(".phdr",0)->plaintext);
+						if($dom->find(".phdr",0)->find('a',0))
+						{
+							// 如果有一个a标签去除prev或者next
+							$first_a = $dom->find(".phdr",0)->find('a',0)->plaintext;
+							$prefix = str_replace($first_a,'', $prefix);
+							// 如果有两个a标签去除
+							if($dom->find(".phdr",0)->find('a',1))
+							{
+								$next_a = $dom->find(".phdr",0)->find('a',1)->plaintext;
+								$prefix = str_replace($next_a,'', $prefix);
+							}
+						}
+						$prefix = htmlspecialchars_decode($prefix);
 					}
 
 
 					// 号码
 					if($dom->find('#t2',0))
 					{
+						$name = '';
+
 						foreach ($dom->find('#t2',0)->find('tr')  as $line => $tr)
 						{
 							$tmp = array();
@@ -83,7 +98,7 @@ class threestep{
 								$num =  $tr->find('td',0)->plaintext;
 								if(!empty($num))
 								{
-									$des = str_replace($tr->find('td',1)->plaintext, '', $prefix).$tr->find('td',1)->plaintext;
+									$des = $tr->find('td',1)->plaintext;
 									$sum = $tr->find('td',2)->plaintext;
 									$tmp = [
 										'car_id' => $data->car_id,
@@ -92,20 +107,25 @@ class threestep{
 										'part_type_num' => $data->part_type_num,
 										'part_type_page' => $data->part_type_page,
 										'part_detail_num' =>$num,
+										'part_detail_name' => trim($name),
 										'part_detail_des' => trim($des),
+										'part_detail_prefix' => $prefix,
 										'part_detail_sum' => $sum
 									];
 								}
 							}
 							else
 							{
-								// 粗文本
+								// 名称
+								if($tr->find('td',1)){
+									$name = $tr->find('td',1)->plaintext;
+								}
+
+
 								// 下一行是粗的 或者 不存在 = 号码
 								if(!$tr->next_sibling() || ($tr->next_sibling()->tag!='tr') || ($tr->next_sibling()->getAttribute('class')=='h'))
 								{
 									$num =  $tr->find('td',0)->plaintext;
-									$des = str_replace($tr->find('td',1)->plaintext, '', $prefix).$tr->find('td',1)->plaintext;
-
 									$sum = $tr->find('td',2)->plaintext;
 									$tmp = [
 										'car_id' => $data->car_id,
@@ -114,11 +134,13 @@ class threestep{
 										'part_type_num' => $data->part_type_num,
 										'part_type_page' => $data->part_type_page,
 										'part_detail_num' =>$num,
-										'part_detail_des' => trim($des),
+										'part_detail_name' => trim($name),
+										'part_detail_prefix' => $prefix,
 										'part_detail_sum' => $sum
 									];
 								}
 							}
+
 							// 入库
 							if(!empty($tmp)) Capsule::table('part_detail')->insert($tmp);
 						}

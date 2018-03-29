@@ -4,46 +4,36 @@
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 $capsule = new Capsule;
-// 创建链接
+// temp_toyodiy.com库
 $capsule->addConnection(array_merge($database, ['database' => 'temp_toyodiy.com']),'vin_list');
-// 设置全局静态可访问
 $capsule->setAsGlobal();
-// 启动Eloquent
 $capsule->bootEloquent();
 
-// 创建链接
+// schema库
 $capsule->addConnection($database,'schema');
-// 设置全局静态可访问
 $capsule->setAsGlobal();
-// 启动Eloquent
 $capsule->bootEloquent();
 
+// temp_toyodiy_20180329库
 $Schema = [];
-// 检测数据库是否存在
 $Query = Capsule::connection('schema')->select('show databases');
-
-foreach ($Query as $Table)
-{
+foreach ($Query as $Table){
     $Schema[] = $Table->Database;
 }
-
-$newDbName = 'temp_toyodiy_'.date("Ym",time());
-
-// 用于存储原始数据数据的数据库
-$database = array_merge($database, ['database' => $newDbName]);
-
-if (!in_array($newDbName,$Schema))
-{
-	// 如果数据库不存在则创建数据库
-    $SQL = sprintf('create database `%s` character set utf8 collate utf8_unicode_ci', $newDbName);
+$name = 'temp_toyodiy_'.date("Ym",time());
+$database = array_merge($database, ['database' => $name]);
+if (!in_array($name,$Schema)){
+	// 不存在则新建
+    $SQL = sprintf('create database `%s` character set utf8 collate utf8_unicode_ci', $name);
     Capsule::connection('schema')->statement($SQL);
 }
-
-// 创建默认数据库连接
 $capsule->addConnection($database);
-// 设置全局静态可访问
 $capsule->setAsGlobal();
-// 启动Eloquent
+$capsule->bootEloquent();
+
+// yp_realoem库
+$capsule->addConnection(array_merge($database, ['database' => 'yp_realoem']),'yp_realoem');
+$capsule->setAsGlobal();
 $capsule->bootEloquent();
 
 // 定义下载文件存储路径
