@@ -80,13 +80,24 @@ class fivestep{
 		{
 			$res = Capsule::table('part_detail')->leftJoin('car','part_detail.car_id','=','car.id')
 	            ->select('car.model','part_detail.part_type','part_detail.part_type_num')->whereBetween('part_detail.id',[$i*$perpage+1, ($i+1)*$perpage])->get();
+
+	        $f_res = array();
+	        foreach ($res as $k => $v) {
+	        	$f_res[] = sprintf("%s=%s=%s",$v->model,$v->part_type_num,$v->part_type);
+	        }
+	        $f_res = array_unique($f_res);
+	        $res = array();
+	        foreach ($f_res as $k => $v) {
+	        	$res[] = explode('=', $v);
+	        }
+
 			$no_exist = array();
 			foreach ($res as $v) {
 				$no_exist[] = array(
 					'pmg_parent' => '',
 					'pmg_childern' => '',
-					'pmg_grp1_id' => $data_partgrp1[md5($v->model)],
-		        	'pmg_grp2_id' => $data_partgrp2[md5(sprintf('%s=%s',$v->part_type_num,$v->part_type))],
+					'pmg_grp1_id' => $data_partgrp1[md5($v[0])],
+		        	'pmg_grp2_id' => $data_partgrp2[md5(sprintf('%s=%s',$v[1],$v[2]))],
 		        	'pmg_order' => 999
 				); 
 			}
@@ -128,16 +139,16 @@ class fivestep{
 				{
 		        	$this_txt = str_replace($v->part_detail_des,'',$v->part_detail_prefix).' '.$v->part_detail_des;
 				}
-				$no_exist[] = $this_txt;
+				$no_exist[] = str_replace("  ", ' ',$this_txt);
 			}
 			$res = Capsule::connection('yp_realoem')->table('data_text')->select('txt_text')->get();
 			$exist = array();
 			foreach ($res as $v) { $exist[] = $v->txt_text;}
-			$res = array_diff($no_exist, $exist);
+			$res = array_unique(array_diff($no_exist, $exist));
 			$temp = array();
 			foreach ($res as $v) { $temp[] = ['txt_text'=>$v]; }
-			if(!empty($res)){ Capsule::connection('yp_realoem')->table('data_text')->insert($temp);}
-			echo 'page '.$i.PHP_EOL;
+			if(!empty($temp)){ Capsule::connection('yp_realoem')->table('data_text')->insert($temp);}
+			echo 'txt page '.$i.PHP_EOL;
 		}
 		$res = Capsule::connection('yp_realoem')->table('data_text')->select('txt_id','txt_text')->get();
 		$data_text = array();
@@ -146,7 +157,7 @@ class fivestep{
 
 
     	// 6、关键字表 => 号码的名称
-		$res = Capsule::table('part_detail')->select('part_detail_name')->get();
+		$res = Capsule::table('part_detail')->select('part_detail_name')->distinct()->get();
 		$no_exist = array();
 		foreach ($res as $v) { $no_exist[] = $v->part_detail_name; }
 		$res = Capsule::connection('yp_realoem')->table('data_keyword')->select('key_keyword')->get();
@@ -175,17 +186,13 @@ class fivestep{
 		            ->select('car.model','car.source', 'part_detail.id','part_detail.part_type','part_detail.part_type_num','part_detail.part_detail_num','part_detail.part_detail_des','part_detail.part_detail_name','part_detail.part_detail_prefix')
 		            ->where('part_detail.status','wait')
 		            ->orderBy('part_detail.id','asc')
-		            ->limit(1000)->get();
-		    // 2、产品表
-		    $insert_for_data_product = array();
-		    // 3、产品关键词
-		    $insert_for_data_product_keyword = array();
-		    // 4、产品vin表
-		    $insert_for_data_product_vins = array();
-		    // 5、产品搜索表
-		    $insert_for_data_product_search = array();
-		    // 6、主表
-		    $insert_for_data_product_partgrp8 = array();
+		            ->limit(10000)->get();
+		   
+		    $insert_for_data_product = array(); // 1、产品表
+		    $insert_for_data_product_keyword = array();// 2、产品关键词	    
+		    $insert_for_data_product_vins = array();// 3、产品vin表
+		    $insert_for_data_product_search = array(); // 4、产品搜索表
+		    $insert_for_data_product_partgrp8 = array();// 5、主表
 		    // 获取产品最大ID
 		    $res = Capsule::connection('yp_realoem')->table('data_product')->select('pro_id')->orderBy('pro_id','desc')->first();
 		    $pro_id = $res->pro_id+1;
@@ -194,11 +201,7 @@ class fivestep{
 	        // 循环数据入库
 	        foreach ($datas as $key => $data) {
 	        	// 校验号码唯一性
-	        	if(in_array($data->part_detail_num, $all_realoem)){
-	        		continue;
-	        	}else{
-	        		$all_realoem[] = $data->part_detail_num;
-	        	}
+	        	if(in_array($data->part_detail_num, $all_realoem)){ continue;}else{ $all_realoem[] = $data->part_detail_num;}
 	        	// 描述
 				if(empty($data->part_detail_des) || empty(str_replace($data->part_detail_des,'',$data->part_detail_prefix)))
 				{
@@ -208,6 +211,7 @@ class fivestep{
 				{
 		        	$this_txt = str_replace($data->part_detail_des,'',$data->part_detail_prefix).' '.$data->part_detail_des;
 				}
+				$this_txt = str_replace("  ", ' ',$this_txt);
 	        	// vin
 	        	$vin_text = str_replace('http://www.toyodiy.com/parts/q?vin=', '', $data->source);
 	        	
@@ -255,23 +259,15 @@ class fivestep{
 					'ppm_order' => 999
 			    );
 			    $insert_for_data_product_partgrp8[] = $temp;
-
 			    $pro_id++;
-			   
 			    echo $data->id.PHP_EOL;
 	        }
-	        // 入库
-		    // 2、产品表
-		    Capsule::connection('yp_realoem')->table('data_product')->insert($insert_for_data_product);
-		    // 3、产品关键词
-		    Capsule::connection('yp_realoem')->table('data_product_keyword')->insert($insert_for_data_product_keyword);
-		    // 4、产品vin表
-		    Capsule::connection('yp_realoem')->table('data_product_vins')->insert($insert_for_data_product_vins);
-		    // 5、产品搜索表
-		    Capsule::connection('yp_realoem')->table('data_product_search')->insert($insert_for_data_product_search);
-		    // 6、主表
-		    Capsule::connection('yp_realoem')->table('data_product_partgrp_8')->insert($insert_for_data_product_partgrp8);
-
+	    // 入库
+	    Capsule::connection('yp_realoem')->table('data_product')->insert($insert_for_data_product);// 1、产品表
+	    Capsule::connection('yp_realoem')->table('data_product_keyword')->insert($insert_for_data_product_keyword); // 2、产品关键词
+	    Capsule::connection('yp_realoem')->table('data_product_vins')->insert($insert_for_data_product_vins);// 3、产品vin表
+	    Capsule::connection('yp_realoem')->table('data_product_search')->insert($insert_for_data_product_search); // 4、产品搜索表
+	    Capsule::connection('yp_realoem')->table('data_product_partgrp_8')->insert($insert_for_data_product_partgrp8);// 5、主表
 		    // 标记已读
 		    foreach ($datas as $data) {  $all_data_id[] = $data->id;}
 		    if(!empty($all_data_id)) Capsule::table('part_detail')->whereIn('id',$all_data_id)->update(['status' =>'readed']);
