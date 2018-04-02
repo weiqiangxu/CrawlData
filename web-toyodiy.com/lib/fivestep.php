@@ -16,9 +16,23 @@ use Overtrue\Pinyin\Pinyin;
   */
 class fivestep{
 
+	public static function json()
+	{
+		$res = Capsule::table('part_detail')->select('part_detail_name')->distinct()->get();
+		$pinyin = new Pinyin();
+		$json_arr = array();
+		foreach ($res as $key => $value) {
+			echo $key.PHP_EOL;
+			$json_arr[$value->part_detail_name] = $pinyin->permalink($value->part_detail_name,'_');
+		}
+		file_put_contents(__DIR__.'./pinyin.json',json_encode($json_arr));
+	}
+
+
 	// 迁移数据
 	public static function move()
 	{
+		$pinyin = json_decode(file_get_contents(__DIR__.'./pinyin.json'),true);
 		// 1、品牌表 
     	$data_etks = ['etk_id' => 8,'etk_name'=>'丰田','etk_post'=>'','etk_pinyin'=>'toyota','etk_order'=>5];
 		// 2、data_vins
@@ -173,35 +187,42 @@ class fivestep{
 		echo 'all data_keyword insert'.PHP_EOL;
 
 		// 唯一标志符号
-		$res = Capsule::connection('yp_realoem')->table('data_product')->select('pro_realoem')->get();
+		$res = Capsule::connection('yp_realoem')->table('data_product')->leftJoin('data_product_vins','data_product.pro_id', '=', 'data_product_vins.ppv_pro_id')->leftJoin('data_vins','data_vins.vin_id', '=', 'data_product_vins.ppv_vin_id')->select('data_product.pro_realoem','data_vins.vin_name')->get();
 		$all_realoem = array();
-		foreach ($res as $k => $v) { $all_realoem[] = $v->pro_realoem; }
+		foreach ($res as $k => $v) { $all_realoem[] = sprintf("%s=%s",$v->pro_realoem,$v->vin_name);}
 		echo 'start insert pro'.PHP_EOL;
 
-		$pinyin = new Pinyin();
-		$empty = Capsule::table('part_detail')->where('status','wait')->get()->isEmpty();
-	    // 循环
-		while(!$empty) {
-			$datas = Capsule::table('part_detail')->leftJoin('car', 'part_detail.car_id', '=', 'car.id')
-		            ->select('car.model','car.source', 'part_detail.id','part_detail.part_type','part_detail.part_type_num','part_detail.part_detail_num','part_detail.part_detail_des','part_detail.part_detail_name','part_detail.part_detail_prefix')
-		            ->where('part_detail.status','wait')
-		            ->orderBy('part_detail.id','asc')
-		            ->limit(10000)->get();
-		   
+		// 车型ID与主组子组映射
+		$res = Capsule::table('car')->select('vin_text','model','id')->get();
+		$car_model = array();
+		$car_vin = array();
+		foreach ($res as $k => $v) {
+			$car_model[$v->id] = $v->model;
+			$car_vin[$v->id] = $v->vin_text;
+		}
+		// 分页取
+		$perpage = 5000;
+		$page_count = ceil(Capsule::table('part_detail')->count()/$perpage);
+		for ($i = 0; $i < $page_count; $i++) 
+		{
+			$time_start = time();
+			$datas = Capsule::table('part_detail')
+			->select('car_id', 'id','part_type','part_type_num','part_detail_num','part_detail_des','part_detail_name','part_detail_prefix')
+			->whereBetween('id',[$i*$perpage+370002,($i+1)*$perpage+370002])->get();
 		    $insert_for_data_product = array(); // 1、产品表
 		    $insert_for_data_product_keyword = array();// 2、产品关键词	    
 		    $insert_for_data_product_vins = array();// 3、产品vin表
 		    $insert_for_data_product_search = array(); // 4、产品搜索表
 		    $insert_for_data_product_partgrp8 = array();// 5、主表
-		    // 获取产品最大ID
+		    // 产品最大ID
 		    $res = Capsule::connection('yp_realoem')->table('data_product')->select('pro_id')->orderBy('pro_id','desc')->first();
 		    $pro_id = $res->pro_id+1;
-
-		    $all_data_id = array();
 	        // 循环数据入库
 	        foreach ($datas as $key => $data) {
+	        	// vin
+	        	$vin_text = $car_vin[$data->car_id];
 	        	// 校验号码唯一性
-	        	if(in_array($data->part_detail_num, $all_realoem)){ continue;}else{ $all_realoem[] = $data->part_detail_num;}
+	        	if(in_array(sprintf("%s=%s",$data->part_detail_num,$vin_text), $all_realoem)){ continue;}else{ $all_realoem[]=sprintf("%s=%s",$data->part_detail_num,$vin_text);}
 	        	// 描述
 				if(empty($data->part_detail_des) || empty(str_replace($data->part_detail_des,'',$data->part_detail_prefix)))
 				{
@@ -212,17 +233,13 @@ class fivestep{
 		        	$this_txt = str_replace($data->part_detail_des,'',$data->part_detail_prefix).' '.$data->part_detail_des;
 				}
 				$this_txt = str_replace("  ", ' ',$this_txt);
-	        	// vin
-	        	$vin_text = str_replace('http://www.toyodiy.com/parts/q?vin=', '', $data->source);
-	        	
-
 	        	// 主组直组关联表主键
-	        	$pmg_id = $data_partgrp[sprintf("%s=%s",$data_partgrp1[md5($data->model)],
+	        	$pmg_id = $data_partgrp[sprintf("%s=%s",$data_partgrp1[md5($car_model[$data->car_id])],
 	        								$data_partgrp2[md5(sprintf('%s=%s',$data->part_type_num,$data->part_type))])]; 
 
-
+	        	if(empty($pinyin[$data->part_detail_name])) {echo $data->id;die;}
 			    // 2、产品表
-			    $pro_pos = $data_etks['etk_pinyin'].','.strtolower($pinyin->permalink($data->part_detail_name,'_')).','.strtolower(str_replace('-','',$data->part_detail_num));
+			    $pro_pos = $data_etks['etk_pinyin'].','.strtolower($pinyin[$data->part_detail_name]).','.strtolower(str_replace('-','',$data->part_detail_num));
 			    $temp = array(
 			    	'pro_id' => $pro_id,
 			    	'pro_yp_part' => 0,
@@ -262,19 +279,19 @@ class fivestep{
 			    $pro_id++;
 			    echo $data->id.PHP_EOL;
 	        }
-	    // 入库
-	    Capsule::connection('yp_realoem')->table('data_product')->insert($insert_for_data_product);// 1、产品表
-	    Capsule::connection('yp_realoem')->table('data_product_keyword')->insert($insert_for_data_product_keyword); // 2、产品关键词
-	    Capsule::connection('yp_realoem')->table('data_product_vins')->insert($insert_for_data_product_vins);// 3、产品vin表
-	    Capsule::connection('yp_realoem')->table('data_product_search')->insert($insert_for_data_product_search); // 4、产品搜索表
-	    Capsule::connection('yp_realoem')->table('data_product_partgrp_8')->insert($insert_for_data_product_partgrp8);// 5、主表
-		    // 标记已读
+		    // 入库
+		    Capsule::connection('yp_realoem')->table('data_product')->insert($insert_for_data_product);// 1、产品表
+		    Capsule::connection('yp_realoem')->table('data_product_keyword')->insert($insert_for_data_product_keyword); // 2、产品关键词
+		    Capsule::connection('yp_realoem')->table('data_product_vins')->insert($insert_for_data_product_vins);// 3、产品vin表
+		    Capsule::connection('yp_realoem')->table('data_product_search')->insert($insert_for_data_product_search); // 4、产品搜索表
+		    Capsule::connection('yp_realoem')->table('data_product_partgrp_8')->insert($insert_for_data_product_partgrp8);// 5、主表
+		    // 更新状态记录
+		    $all_data_id = array();
 		    foreach ($datas as $data) {  $all_data_id[] = $data->id;}
 		    if(!empty($all_data_id)) Capsule::table('part_detail')->whereIn('id',$all_data_id)->update(['status' =>'readed']);
-		    
-			echo 'part_detail 1000 move completed!'.PHP_EOL;
-
-			$empty = Capsule::table('part_detail')->where('status','wait')->get()->isEmpty();
-		}	
+		    // 统计信息
+			echo 'part_detail 5000 move completed!'.PHP_EOL;
+			echo time()-$time_start.' s wasted!'.PHP_EOL;
+		}
 	}
 }
