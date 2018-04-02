@@ -208,7 +208,7 @@ class fivestep{
 			$time_start = time();
 			$datas = Capsule::table('part_detail')
 			->select('car_id', 'id','part_type','part_type_num','part_detail_num','part_detail_des','part_detail_name','part_detail_prefix')
-			->whereBetween('id',[$i*$perpage+370002,($i+1)*$perpage+370002])->get();
+			->whereBetween('id',[$i*$perpage+435003,($i+1)*$perpage+435003])->get();
 		    $insert_for_data_product = array(); // 1、产品表
 		    $insert_for_data_product_keyword = array();// 2、产品关键词	    
 		    $insert_for_data_product_vins = array();// 3、产品vin表
@@ -286,9 +286,7 @@ class fivestep{
 		    Capsule::connection('yp_realoem')->table('data_product_search')->insert($insert_for_data_product_search); // 4、产品搜索表
 		    Capsule::connection('yp_realoem')->table('data_product_partgrp_8')->insert($insert_for_data_product_partgrp8);// 5、主表
 		    // 更新状态记录
-		    $all_data_id = array();
-		    foreach ($datas as $data) {  $all_data_id[] = $data->id;}
-		    if(!empty($all_data_id)) Capsule::table('part_detail')->whereIn('id',$all_data_id)->update(['status' =>'readed']);
+			Capsule::table('part_detail')->whereBetween('id',[$i*$perpage+435003,($i+1)*$perpage+435003])->update(['status' =>'readed']);
 		    // 统计信息
 			echo 'part_detail 5000 move completed!'.PHP_EOL;
 			echo time()-$time_start.' s wasted!'.PHP_EOL;
