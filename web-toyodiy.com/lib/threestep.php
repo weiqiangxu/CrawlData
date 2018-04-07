@@ -3,9 +3,6 @@
 use Illuminate\Database\Capsule\Manager as Capsule;
 // 解析HTML为DOM工具
 use Sunra\PhpSimple\HtmlDomParser;
-// 多进程下载器
-use Huluo\Extend\Gather;
-
 use Illuminate\Database\Schema\Blueprint;
 
 /**

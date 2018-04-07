@@ -95,9 +95,6 @@ onestep::initable();
 // // Cardiff
 // onestep::Cardiff();
 
-// // Newcastle
-// onestep::Newcastle();
-
 // // Liverpool
 // onestep::Liverpool();
 
@@ -134,3 +131,11 @@ onestep::initable();
 // // Stirling
 // onestep::Stirling();
 
+// // Newcastle
+// onestep::Newcastle();
+
+// UEA
+// onestep::uea();
+
+// Surrey
+// onestep::Surrey();

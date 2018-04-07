@@ -1,25 +1,12 @@
 {
-    "name": "huluo/catch",
+    "name": "Rookie/CrawlData",
     "require": {
     	"guzzlehttp/guzzle": "^6.3",
         "illuminate/database": "^5.5",
-        "illuminate/events": "^5.5",
         "overtrue/pinyin": "^3.0",
         "sunra/php-simple-html-dom-parser": "^1.5",
         "predis/predis": "^1.1",
-        "phpoffice/phpexcel": "^1.8",
-        "jonnyw/php-phantomjs":"4.6.0",
-        "symfony/dependency-injection":"3.3.9",
-        "jakoch/phantomjs-installer":"2.1.1-p08"
-    },
-    "autoload" : {
-        "Huluo\\Extend\\": "extend",
-        "files": [
-            "extend/Helper.php"
-        ],
-        "classmap": [
-            "extend"
-        ]
+        "jonnyw/php-phantomjs":"4.6.0"
     },
      "scripts": {
         "post-install-cmd": [

@@ -3,8 +3,7 @@
 use Illuminate\Database\Capsule\Manager as Capsule;
 // 解析HTML为DOM工具
 use Sunra\PhpSimple\HtmlDomParser;
-// 多进程下载器
-use Huluo\Extend\Gather;
+
 use Illuminate\Database\Schema\Blueprint;
 use GuzzleHttp\Client;
 
@@ -1557,48 +1556,6 @@ class onestep{
 		}
 	}
 
-	// Newcastle
-	public static function Newcastle()
-	{
-		$web_name = 'Newcastle';
-		$base_url = 'http://www.ncl.ac.uk';
-		$web = 'http://www.ncl.ac.uk/postgraduate/courses/#a-z';
-		if(!is_file(PROJECT_APP_DOWN.$web_name.'.html'))
-		{
-			// 解析页面
-			$client = new Client();
-			$response = $client->get($base_url);
-			@mkdir(PROJECT_APP_DOWN, 0777, true);
-			echo 'download Newcastle successful!'.PHP_EOL;
-			// 保存首页
-			file_put_contents(PROJECT_APP_DOWN.$web_name.'.html', $response->getBody());
-		}
-		// 创建dom对象
-		if($dom = HtmlDomParser::str_get_html(file_get_contents(PROJECT_APP_DOWN.$web_name.'.html')))
-		{
-			foreach($dom->find('#azlink li') as $tr)
-			{
-				if($tr->find('a') && $url = $tr->find('a',0)->href)
-				{
-					$title = $tr->find('a',0)->plaintext;
-				    $temp = [
-				    	'url' => $base_url.$url,
-				    	'status' => 'wait',
-				    	'md5_url' => md5($url),
-				    	'title' => $title,
-				    	'web_name'=>$web_name
-				    ];
-				    // 入库
-				    $empty = Capsule::table('info')->where('md5_url',md5($url))->get()->isEmpty();
-				    if($empty) Capsule::table('info')->insert($temp);
-				}
-			}
-			echo 'masters analyse completed!'.PHP_EOL;
-			// 清理内存防止内存泄漏
-			$dom-> clear(); 
-		}
-	}
-
 	// Liverpool
 	public static function Liverpool()
 	{
@@ -2509,5 +2466,134 @@ class onestep{
 		}
 		echo 'Bangor_University analyse completed!'.PHP_EOL;
 	}
+
+	// Newcastle
+	public static function Newcastle()
+	{
+		$web_name = 'Newcastle';
+		$base_url = 'http://www.ncl.ac.uk';
+		
+		// 创建dom对象
+		if($dom = HtmlDomParser::str_get_html(file_get_contents(__DIR__.'/Newcastle.html')))
+		{
+			foreach($dom->find('.course-list-subject li') as $li)
+			{
+				if($li->find('a',0))
+				{
+					$url = $li->find('a',0)->href;
+					$title = $li->find('a',0)->plaintext;
+				    $temp = [
+				    	'url' => $base_url.$url,
+				    	'status' => 'wait',
+				    	'md5_url' => md5($base_url.$url),
+				    	'title' => $title,
+				    	'web_name'=>$web_name
+				    ];
+				    // 入库
+				    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
+				}
+			}
+			echo 'Newcastle analyse completed!'.PHP_EOL;
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
+		}
+	}
+
+
+	// UEA
+	public static function uea()
+	{
+		$web_name = 'UEA';
+		$base_url = 'https://www2.uea.ac.uk';		
+		// 创建dom对象
+		$html = file_get_contents(__DIR__.'/uea.html');
+		if($dom = HtmlDomParser::str_get_html($html))
+		{
+			foreach($dom->find('.course') as $li)
+			{
+				if($li->find('a',0))
+				{
+					$url = $li->find('a',0)->href;
+					$title = trim($li->find('h5',0)->plaintext);
+				    $temp = [
+				    	'url' => $base_url.$url,
+				    	'status' => 'wait',
+				    	'md5_url' => md5($base_url.$url),
+				    	'title' => $title,
+				    	'web_name'=>$web_name
+				    ];
+				    // 入库
+				    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
+				}
+			}
+			echo 'UEA analyse completed!'.PHP_EOL;
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
+		}
+	}
+
+	// Surrey
+	public static function Surrey()
+	{
+		$web_name = 'Surrey';
+		$base_url = 'https://www.surrey.ac.uk';		
+		// 创建dom对象
+		$html = file_get_contents(__DIR__.'/surrey-r.html');
+		if($dom = HtmlDomParser::str_get_html($html))
+		{
+			foreach($dom->find('.course') as $div)
+			{
+				if($div->find('a',0))
+				{
+					$url = $div->find('a',0)->href;
+					$title = trim($div->find('a',0)->plaintext);
+				    $temp = [
+				    	'url' => $base_url.$url,
+				    	'status' => 'wait',
+				    	'md5_url' => md5($base_url.$url),
+				    	'title' => $title,
+				    	'web_name'=>$web_name
+				    ];
+				    // 入库
+				    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
+				}
+			}
+			echo 'Surrey-r analyse completed!'.PHP_EOL;
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
+		}
+
+		// 创建dom对象
+		$html = file_get_contents(__DIR__.'/surrey.html');
+		if($dom = HtmlDomParser::str_get_html($html))
+		{
+			foreach($dom->find('.course') as $div)
+			{
+				if($div->find('a',0))
+				{
+					$url = $div->find('a',0)->href;
+					$title = trim($div->find('a',0)->plaintext);
+				    $temp = [
+				    	'url' => $base_url.$url,
+				    	'status' => 'wait',
+				    	'md5_url' => md5($base_url.$url),
+				    	'title' => $title,
+				    	'web_name'=>$web_name
+				    ];
+				    // 入库
+				    $empty = Capsule::table('info')->where('md5_url',md5($base_url.$url))->get()->isEmpty();
+				    if($empty) Capsule::table('info')->insert($temp);
+				}
+			}
+			echo 'Surrey analyse completed!'.PHP_EOL;
+			// 清理内存防止内存泄漏
+			$dom-> clear(); 
+		}
+
+	}
+
 
 }
